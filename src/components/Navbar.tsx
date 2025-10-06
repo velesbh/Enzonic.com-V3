@@ -14,6 +14,7 @@ const Navbar = () => {
     setTheme
   } = useTheme();
   const location = useLocation();
+  
   useEffect(() => {
     // Update page title and metadata based on route
     const titles: Record<string, string> = {
@@ -42,72 +43,102 @@ const Navbar = () => {
       metaDescription.setAttribute('content', descriptions[location.pathname] || 'Enzonic LLC - User-Centric & Eco-Friendly Solutions');
     }
   }, [location]);
+
+  // Determine if we're on a service page
+  const isServicePage = ['/boxes', '/translate', '/emi'].includes(location.pathname);
+  
+  // Get service-specific branding
+  const getServiceBranding = () => {
+    switch (location.pathname) {
+      case '/boxes':
+        return { name: 'BOXES', icon: null };
+      case '/translate':
+        return { name: 'TRANSLATE', icon: null };
+      case '/emi':
+        return { name: 'EMI', icon: null };
+      default:
+        return { name: 'ENZONIC', icon: logo };
+    }
+  };
+
+  const branding = getServiceBranding();
+
   return <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm w-full">
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex h-14 sm:h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0">
-            <img src={logo} alt="Enzonic Logo" className="h-6 sm:h-8 w-6 sm:w-8 transition-transform group-hover:scale-110" />
-            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text">ENZONIC</span>
+            {branding.icon && (
+              <img src={branding.icon} alt="Enzonic Logo" className="h-6 sm:h-8 w-6 sm:w-8 transition-transform group-hover:scale-110" />
+            )}
+            <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text">{branding.name}</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-4 lg:gap-6">
-            <Link to="/" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
-              Home
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem asChild>
-                  <Link to="/boxes" className="w-full cursor-pointer">Boxes</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/translate" className="w-full cursor-pointer">Translate</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/emi" className="w-full cursor-pointer">Emi</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <a href="mailto:admin@enzonic.com" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
-              Support
-            </a>
-          </div>
+          {/* Full navbar for non-service pages */}
+          {!isServicePage && (
+            <>
+              <div className="hidden md:flex items-center gap-4 lg:gap-6">
+                <Link to="/" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+                  Home
+                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-sm font-medium hover:text-primary transition-colors">
+                      Services
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem asChild>
+                      <Link to="/boxes" className="w-full cursor-pointer">Boxes</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/translate" className="w-full cursor-pointer">Translate</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/emi" className="w-full cursor-pointer">Emi</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <a href="mailto:admin@enzonic.com" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
+                  Support
+                </a>
+              </div>
 
-          {/* Mobile Menu */}
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 hover:text-primary">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px]">
-                <nav className="flex flex-col gap-4 mt-8">
-                  <Link to="/" className="text-base font-medium hover:text-primary transition-colors px-2 py-1">
-                    Home
-                  </Link>
-                  <div className="border-t border-border my-2" />
-                  <p className="text-xs text-muted-foreground px-2 font-semibold">Services</p>
-                  <Link to="/boxes" className="text-base font-medium hover:text-primary transition-colors px-4 py-1">
-                    Boxes
-                  </Link>
-                  <Link to="/translate" className="text-base font-medium hover:text-primary transition-colors px-4 py-1">
-                    Translate
-                  </Link>
-                  <Link to="/emi" className="text-base font-medium hover:text-primary transition-colors px-4 py-1">
-                    Emi
-                  </Link>
-                  <div className="border-t border-border my-2" />
-                  <a href="mailto:admin@enzonic.com" className="text-base font-medium hover:text-primary transition-colors px-2 py-1">
-                    Support
-                  </a>
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
+              {/* Mobile Menu */}
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 hover:text-primary">
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[280px]">
+                    <nav className="flex flex-col gap-4 mt-8">
+                      <Link to="/" className="text-base font-medium hover:text-primary transition-colors px-2 py-1">
+                        Home
+                      </Link>
+                      <div className="border-t border-border my-2" />
+                      <p className="text-xs text-muted-foreground px-2 font-semibold">Services</p>
+                      <Link to="/boxes" className="text-base font-medium hover:text-primary transition-colors px-4 py-1">
+                        Boxes
+                      </Link>
+                      <Link to="/translate" className="text-base font-medium hover:text-primary transition-colors px-4 py-1">
+                        Translate
+                      </Link>
+                      <Link to="/emi" className="text-base font-medium hover:text-primary transition-colors px-4 py-1">
+                        Emi
+                      </Link>
+                      <div className="border-t border-border my-2" />
+                      <a href="mailto:admin@enzonic.com" className="text-base font-medium hover:text-primary transition-colors px-2 py-1">
+                        Support
+                      </a>
+                    </nav>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </>
+          )}
 
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
             <DropdownMenu>
@@ -128,21 +159,25 @@ const Navbar = () => {
               <span className="sr-only">Toggle theme</span>
             </Button>
 
-            <SignedOut>
-              <SignInButton mode="modal">
-                <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10 hidden sm:flex">
-                  Sign In
-                </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button variant="default" size="sm" className="rounded-full shadow-lg hover:shadow-xl transition-shadow text-xs sm:text-sm">
-                  Sign Up
-                </Button>
-              </SignUpButton>
-            </SignedOut>
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
+            {!isServicePage && (
+              <>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10 hidden sm:flex">
+                      Sign In
+                    </Button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <Button variant="default" size="sm" className="rounded-full shadow-lg hover:shadow-xl transition-shadow text-xs sm:text-sm">
+                      Sign Up
+                    </Button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </>
+            )}
           </div>
         </div>
       </div>
