@@ -2,8 +2,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Clock, MessageSquare, Sparkles, Zap, Settings, Hash, AlertCircle, Star, Shield, Github } from "lucide-react";
+import { Brain, Clock, MessageSquare, Sparkles, Zap, Settings, Hash, AlertCircle, Shield, Github, Code, Database } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const Emi = () => {
   return <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <Navbar />
@@ -14,10 +15,20 @@ const Emi = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
           <div className="container mx-auto px-3 sm:px-4 relative w-full">
             <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-10 md:mb-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mx-auto mb-4 shadow-lg">
+                <Brain className="h-10 w-10 text-primary" />
+              </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">Meet Emi</h1>
-              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">The most advanced Discord bot with AI-powered memory and intelligent message handling
-NOTE: Our hosted version only has our own System Prompt. We are working with Exino to implement system promts/personalities</p>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
+                The most advanced Discord bot with AI-powered memory and intelligent message handling
+              </p>
               
+              <Alert className="max-w-3xl mx-auto border-blue-500/50 bg-blue-500/10 mt-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Note:</strong> Our hosted version uses our own System Prompt. We are working with Exino to implement custom system prompts/personalities.
+                </AlertDescription>
+              </Alert>
               
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-4">
                 <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow" onClick={() => window.open("https://discord.com/oauth2/authorize?client_id=1391530058048471101", "_blank")}>
@@ -48,33 +59,45 @@ NOTE: Our hosted version only has our own System Prompt. We are working with Exi
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-transparent" />
           <div className="container mx-auto px-3 sm:px-4 relative w-full">
             <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-10 md:mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Powerful Features</h2>
-              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">Emi comes packed with features designed to enhance your Discord server experience</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Core Features</h2>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
+                Powerful capabilities designed to enhance your Discord server
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 max-w-7xl mx-auto">
               <Card className="animate-fade-in [animation-delay:100ms] shadow-lg hover:shadow-xl transition-shadow border-2">
                 <CardHeader className="p-4 sm:p-5 md:p-6">
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
                     <Brain className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-base sm:text-lg">Advanced Memory</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Advanced Memory System</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
                     Emi remembers conversations and context across your server, providing intelligent responses based on previous interactions.
                   </CardDescription>
                 </CardHeader>
               </Card>
 
-              
-
-              <Card className="animate-fade-in [animation-delay:300ms] shadow-lg hover:shadow-xl transition-shadow border-2">
+              <Card className="animate-fade-in [animation-delay:200ms] shadow-lg hover:shadow-xl transition-shadow border-2">
                 <CardHeader className="p-4 sm:p-5 md:p-6">
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
                     <Clock className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-base sm:text-lg">Time & Date Awareness</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">Time & Date Aware</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
                     Always knows the current time and date, perfect for scheduling and time-sensitive interactions.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card className="animate-fade-in [animation-delay:300ms] shadow-lg hover:shadow-xl transition-shadow border-2">
+                <CardHeader className="p-4 sm:p-5 md:p-6">
+                  <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
+                    <MessageSquare className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
+                  </div>
+                  <CardTitle className="text-base sm:text-lg">Smart Replies</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Intelligent reply system that understands context and provides relevant, helpful responses.
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -94,18 +117,6 @@ NOTE: Our hosted version only has our own System Prompt. We are working with Exi
               <Card className="animate-fade-in [animation-delay:200ms] shadow-lg hover:shadow-xl transition-shadow border-2">
                 <CardHeader className="p-4 sm:p-5 md:p-6">
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
-                    <MessageSquare className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">Smart Replies</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Intelligent reply system that understands context and provides relevant, helpful responses.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card className="animate-fade-in [animation-delay:300ms] shadow-lg hover:shadow-xl transition-shadow border-2">
-                <CardHeader className="p-4 sm:p-5 md:p-6">
-                  <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
                     <Hash className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
                   </div>
                   <CardTitle className="text-base sm:text-lg">Message Grouping</CardTitle>
@@ -115,19 +126,7 @@ NOTE: Our hosted version only has our own System Prompt. We are working with Exi
                 </CardHeader>
               </Card>
 
-              <Card className="animate-fade-in [animation-delay:100ms] shadow-lg hover:shadow-xl transition-shadow border-2">
-                <CardHeader className="p-4 sm:p-5 md:p-6">
-                  <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
-                    <Hash className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">Custom Channel ID</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Configure specific channels for Emi to operate in, maintaining organized server structure.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card className="animate-fade-in [animation-delay:200ms] shadow-lg hover:shadow-xl transition-shadow border-2">
+              <Card className="animate-fade-in [animation-delay:300ms] shadow-lg hover:shadow-xl transition-shadow border-2">
                 <CardHeader className="p-4 sm:p-5 md:p-6">
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
                     <Zap className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
@@ -201,68 +200,139 @@ NOTE: Our hosted version only has our own System Prompt. We are working with Exi
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-transparent" />
           <div className="container mx-auto px-3 sm:px-4 relative w-full">
             <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-10 md:mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Setup Guide</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Getting Started</h2>
               <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
-                Get Emi up and running in your Discord server in minutes
+                Choose how you want to use Emi
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6 max-w-5xl mx-auto">
-              <Card className="shadow-lg border-2">
-                <CardHeader className="p-4 sm:p-5 md:p-6">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
-                    <span className="text-xl font-bold text-primary">1</span>
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">Create Discord Bot</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm mt-2">
-                    <strong>Step 1</strong>
-                    <br /><br />
-                    Visit Discord Developer Portal and create a new application with bot permissions
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+            <div className="max-w-5xl mx-auto">
+              <Tabs defaultValue="hosted" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsTrigger value="hosted" className="text-sm sm:text-base">Use Hosted Version</TabsTrigger>
+                  <TabsTrigger value="selfhost" className="text-sm sm:text-base">Self-Host</TabsTrigger>
+                </TabsList>
 
-              <Card className="shadow-lg border-2">
-                <CardHeader className="p-4 sm:p-5 md:p-6">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
-                    <span className="text-xl font-bold text-primary">2</span>
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">Configure API Keys</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm mt-2">
-                    <strong>Step 2</strong>
-                    <br /><br />
-                    Set up your OpenWebUI API key and Discord bot token in the environment file
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+                <TabsContent value="hosted" className="space-y-6">
+                  <Card className="shadow-lg border-2">
+                    <CardHeader>
+                      <CardTitle className="text-xl sm:text-2xl">Quick Setup - Use Our Hosted Bot</CardTitle>
+                      <CardDescription>
+                        The easiest way to get started with Emi
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-bold text-primary">1</span>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold mb-1">Click "Add to Discord"</h4>
+                              <p className="text-sm text-muted-foreground">Authorize Emi to join your server</p>
+                            </div>
+                          </div>
+                        </div>
 
-              <Card className="shadow-lg border-2">
-                <CardHeader className="p-4 sm:p-5 md:p-6">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
-                    <span className="text-xl font-bold text-primary">3</span>
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">Customize Settings</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm mt-2">
-                    <strong>Step 3</strong>
-                    <br /><br />
-                    Configure your system prompt, channel ID, and other bot preferences
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-bold text-primary">2</span>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold mb-1">Start Chatting</h4>
+                              <p className="text-sm text-muted-foreground">Mention @Emi in your server and start interacting!</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-              <Card className="shadow-lg border-2">
-                <CardHeader className="p-4 sm:p-5 md:p-6">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md">
-                    <span className="text-xl font-bold text-primary">4</span>
-                  </div>
-                  <CardTitle className="text-base sm:text-lg">Test & Deploy</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm mt-2">
-                    <strong>Step 4</strong>
-                    <br /><br />
-                    Run the bot locally to test, then deploy to your preferred hosting service
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+                      <div className="flex justify-center pt-4">
+                        <Button size="lg" onClick={() => window.open("https://discord.com/oauth2/authorize?client_id=1391530058048471101", "_blank")}>
+                          Add to Discord Now
+                        </Button>
+                      </div>
+
+                      <Alert className="border-blue-500/50 bg-blue-500/10">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          The hosted version uses our default system prompt. Custom personalities coming soon through our partnership with Exino!
+                        </AlertDescription>
+                      </Alert>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="selfhost" className="space-y-6">
+                  <Card className="shadow-lg border-2">
+                    <CardHeader>
+                      <CardTitle className="text-xl sm:text-2xl">Self-Host Setup</CardTitle>
+                      <CardDescription>
+                        Host your own instance with full customization
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Card className="border-2">
+                          <CardHeader className="p-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                              <Code className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-base">1. Clone Repository</CardTitle>
+                            <CardDescription className="text-xs">
+                              Get the source code from GitHub
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+
+                        <Card className="border-2">
+                          <CardHeader className="p-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                              <Settings className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-base">2. Configure</CardTitle>
+                            <CardDescription className="text-xs">
+                              Set up your Discord bot token and API keys
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+
+                        <Card className="border-2">
+                          <CardHeader className="p-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                              <Database className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-base">3. Set Up Database</CardTitle>
+                            <CardDescription className="text-xs">
+                              Configure PostgreSQL for memory storage
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+
+                        <Card className="border-2">
+                          <CardHeader className="p-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                              <Zap className="h-5 w-5 text-primary" />
+                            </div>
+                            <CardTitle className="text-base">4. Deploy</CardTitle>
+                            <CardDescription className="text-xs">
+                              Run locally or deploy to your hosting service
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+                      </div>
+
+                      <div className="flex justify-center gap-4 pt-4">
+                        <Button variant="outline" size="lg" onClick={() => window.open("https://github.com/enzonic-llc/emi", "_blank")}>
+                          <Github className="mr-2 h-5 w-5" />
+                          View Documentation
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </section>

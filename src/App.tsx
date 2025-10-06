@@ -13,6 +13,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Boxes from "./pages/Boxes";
 import Emi from "./pages/Emi";
+import Shows from "./pages/Shows";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/translate" element={<Translate />} />
                 <Route path="/boxes" element={<Boxes />} />
                 <Route path="/emi" element={<Emi />} />
+                <Route path="/shows" element={<Shows />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="*" element={<NotFound />} />

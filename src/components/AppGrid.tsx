@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
-import { Home, Languages, Server, Brain } from "lucide-react";
+import { Home, Languages, Server, Brain, Tv } from "lucide-react";
 
 const apps = [
   { name: "Home", path: "/", icon: Home },
-  { name: "Translate", path: "/translate", icon: Languages },
-  { name: "Boxes", path: "/boxes", icon: Server },
   { name: "Emi", path: "/emi", icon: Brain },
+  { name: "Boxes", path: "/boxes", icon: Server },
+  { name: "Translate", path: "/translate", icon: Languages },
+  { name: "Shows", path: "/shows", icon: Tv },
 ];
 
 const AppGrid = () => {
   return (
     <div className="w-80 p-5 bg-card/95 backdrop-blur-sm rounded-2xl shadow-xl">
-      <div className="grid grid-cols-3 gap-3">
-        {apps.map((app) => {
+      <div className="grid grid-cols-3 gap-3">{apps.map((app) => {
           const Icon = app.icon;
           return (
             <Link

@@ -7,6 +7,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuIte
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AppGrid from "@/components/AppGrid";
 import logo from "@/assets/logo.png";
+import emiLogo from "@/assets/emi-logo.png";
+import boxesLogo from "@/assets/boxes-logo.png";
+import translateLogo from "@/assets/translate-logo.png";
 import { useEffect } from "react";
 const Navbar = () => {
   const {
@@ -22,6 +25,7 @@ const Navbar = () => {
       '/boxes': 'Boxes - Enzonic LLC',
       '/translate': 'Translate - Enzonic LLC',
       '/emi': 'Emi - AI Discord Bot | Enzonic LLC',
+      '/shows': 'Enzonic Shows - Entertainment & Education | Enzonic LLC',
       '/support': 'Support - Enzonic LLC',
       '/admin': 'Admin - Enzonic LLC',
       '/terms': 'Terms of Service - Enzonic LLC',
@@ -32,6 +36,7 @@ const Navbar = () => {
       '/boxes': 'Secure cloud storage and file management with Enzonic Boxes.',
       '/translate': 'Professional translation services powered by Enzonic.',
       '/emi': 'The most advanced Discord bot with AI-powered memory and intelligent message handling.',
+      '/shows': 'Entertainment that educates. Comedy that informs. Watch Enzonic Shows for a new kind of content experience.',
       '/support': 'Get support from Enzonic LLC.',
       '/admin': 'Admin dashboard for Enzonic services.',
       '/terms': 'Terms of Service for Enzonic LLC.',
@@ -51,17 +56,37 @@ const Navbar = () => {
   const getServiceBranding = () => {
     switch (location.pathname) {
       case '/boxes':
-        return { name: 'BOXES', icon: null };
+        return { name: 'BOXES', icon: boxesLogo };
       case '/translate':
-        return { name: 'TRANSLATE', icon: null };
+        return { name: 'TRANSLATE', icon: translateLogo };
       case '/emi':
-        return { name: 'EMI', icon: null };
+        return { name: 'EMI', icon: emiLogo };
       default:
         return { name: 'ENZONIC', icon: logo };
     }
   };
 
   const branding = getServiceBranding();
+
+  // Update favicon based on current page
+  useEffect(() => {
+    const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
+    if (favicon) {
+      switch (location.pathname) {
+        case '/boxes':
+          favicon.href = boxesLogo;
+          break;
+        case '/translate':
+          favicon.href = translateLogo;
+          break;
+        case '/emi':
+          favicon.href = emiLogo;
+          break;
+        default:
+          favicon.href = '/favicon.png';
+      }
+    }
+  }, [location.pathname]);
 
   return <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm w-full">
       <div className="container mx-auto px-3 sm:px-4">
