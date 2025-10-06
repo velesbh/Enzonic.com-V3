@@ -1,14 +1,11 @@
 import { Link } from "react-router-dom";
-import { Home, Languages, Shield, FileText, Settings, Server, Brain } from "lucide-react";
+import { Home, Languages, Server, Brain } from "lucide-react";
 
 const apps = [
   { name: "Home", path: "/", icon: Home },
   { name: "Translate", path: "/translate", icon: Languages },
   { name: "Boxes", path: "/boxes", icon: Server },
   { name: "Emi", path: "/emi", icon: Brain },
-  { name: "Admin", path: "/admin", icon: Settings },
-  { name: "Terms", path: "/terms", icon: FileText },
-  { name: "Privacy", path: "/privacy", icon: Shield },
 ];
 
 const AppGrid = () => {
