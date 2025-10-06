@@ -17,9 +17,7 @@ const Shows = () => {
                 <Tv className="h-10 w-10 text-primary" />
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">ENZONIC SHOWS</h1>
-              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">
-                Entertainment that educates. Comedy that informs. Proving content can be done differently.
-              </p>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-3xl mx-auto px-4 sm:px-0">Content, that is just simply different from other corporate companies</p>
             </div>
           </div>
         </section>
