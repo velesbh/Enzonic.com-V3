@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquare } from "lucide-react";
+import { usePageMetadata } from "@/hooks/use-page-metadata";
 
 const Support = () => {
+  usePageMetadata();
   const [formData, setFormData] = useState({
     name: "",
     email: "",

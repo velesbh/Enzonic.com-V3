@@ -3,10 +3,10 @@ import { Home, Languages, Server, Brain, Tv } from "lucide-react";
 
 const apps = [
   { name: "Home", path: "/", icon: Home },
-  { name: "Emi", path: "/emi", icon: Brain },
+  { name: "Enzonic Emi", path: "/emi", icon: Brain },
   { name: "Boxes", path: "/boxes", icon: Server },
-  { name: "Translate", path: "/translate", icon: Languages },
-  { name: "Shows", path: "/shows", icon: Tv },
+  { name: "AI Translate", path: "/translate", icon: Languages },
+  { name: "Enzonic Shows", path: "/shows", icon: Tv },
 ];
 
 const AppGrid = () => {

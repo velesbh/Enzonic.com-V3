@@ -1,7 +1,9 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePageMetadata } from "@/hooks/use-page-metadata";
 
 const Privacy = () => {
+  usePageMetadata();
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

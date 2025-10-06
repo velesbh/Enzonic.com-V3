@@ -1,23 +1,32 @@
-import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, useUser, useAuth } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ServiceUnavailable from "@/components/ServiceUnavailable";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertCircle, Server, Shield, Trash2, Monitor } from "lucide-react";
+import { AlertCircle, Server, Shield, Trash2, Monitor, Package } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useServiceStatus, recordActivity } from "@/lib/serviceApi";
+import { usePageMetadata } from "@/hooks/use-page-metadata";
+import { EnzonicLoading } from "@/components/ui/enzonic-loading";
 
 const Boxes = () => {
+  usePageMetadata();
   const navigate = useNavigate();
   const { user } = useUser();
+  const { getToken, isSignedIn } = useAuth();
   const isMobile = useIsMobile();
   const [tosAccepted, setTosAccepted] = useState(false);
   const [showTosDialog, setShowTosDialog] = useState(false);
   const [tempTosAccept, setTempTosAccept] = useState(false);
+
+  // Check service availability
+  const { status: serviceStatus, loading: serviceLoading } = useServiceStatus('boxes');
 
   useEffect(() => {
     if (user) {
@@ -30,13 +39,80 @@ const Boxes = () => {
     }
   }, [user]);
 
-  const handleAcceptTos = () => {
+  // Record page view activity
+  useEffect(() => {
+    const trackPageView = async () => {
+      try {
+        const token = isSignedIn ? await getToken() : undefined;
+        await recordActivity('page_view', {
+          page: 'boxes',
+          url: window.location.href
+        }, token);
+      } catch (error) {
+        // Silently fail for analytics
+        console.debug('Failed to track page view:', error);
+      }
+    };
+
+    trackPageView();
+  }, [isSignedIn, getToken]);
+
+  const handleAcceptTos = async () => {
     if (tempTosAccept && user) {
       localStorage.setItem(`boxes_tos_${user.id}`, "true");
       setTosAccepted(true);
       setShowTosDialog(false);
+      
+      // Record TOS acceptance
+      try {
+        const token = await getToken();
+        await recordActivity('tos_accepted', {
+          service: 'boxes',
+          userId: user.id
+        }, token);
+      } catch (error) {
+        console.debug('Failed to track TOS acceptance:', error);
+      }
     }
   };
+
+  const handleLaunchBoxes = async () => {
+    try {
+      const token = await getToken();
+      await recordActivity('service_launch', {
+        service: 'boxes',
+        action: 'launch_vm'
+      }, token);
+    } catch (error) {
+      console.debug('Failed to track service launch:', error);
+    }
+    
+    window.open("https://boxesthree.enzonic.me/#/cast/chrome", "_blank");
+  };
+
+  // If service is not available, show unavailable page
+  if (!serviceLoading && serviceStatus && !serviceStatus.available) {
+    return (
+      <ServiceUnavailable 
+        serviceName="Boxes" 
+        description="The Boxes virtual machine service is currently disabled by the administrator."
+        icon={<Package className="h-8 w-8 text-orange-600 dark:text-orange-400" />}
+      />
+    );
+  }
+
+  // Show loading while checking service status
+  if (serviceLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <EnzonicLoading size="lg" message="Checking service availability..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
@@ -142,7 +218,7 @@ const Boxes = () => {
                       <CardContent className="flex flex-col items-center pb-6">
                         <Button 
                           size="lg"
-                          onClick={() => window.open("https://boxesthree.enzonic.me/#/cast/chrome", "_blank")}
+                          onClick={handleLaunchBoxes}
                           className="shadow-lg hover:shadow-xl transition-shadow"
                         >
                           Launch Boxes Browser

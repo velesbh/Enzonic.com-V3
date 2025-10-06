@@ -3,7 +3,10 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tv, Video, Clapperboard, Sparkles } from "lucide-react";
+import { usePageMetadata } from "@/hooks/use-page-metadata";
+
 const Shows = () => {
+  usePageMetadata();
   return <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <Navbar />
       

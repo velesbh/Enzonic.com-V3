@@ -7,7 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Recycle, Users, Sparkles, Server, Languages, Brain, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { usePageMetadata } from "@/hooks/use-page-metadata";
+
 const Index = () => {
+  usePageMetadata();
   return <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <Navbar />
       
@@ -86,7 +89,7 @@ const Index = () => {
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md group-hover:scale-110 transition-transform">
                     <Brain className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-base sm:text-lg md:text-xl">Emi</CardTitle>
+                  <CardTitle className="text-base sm:text-lg md:text-xl">Enzonic Emi</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
                     Advanced AI Discord bot with memory and intelligent responses
                   </CardDescription>
@@ -103,7 +106,7 @@ const Index = () => {
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md group-hover:scale-110 transition-transform">
                     <Server className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-base sm:text-lg md:text-xl">Boxes</CardTitle>
+                  <CardTitle className="text-base sm:text-lg md:text-xl">Enzonic Boxes</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
                     Secure virtual machines with isolated browser sessions
                   </CardDescription>
@@ -120,7 +123,7 @@ const Index = () => {
                   <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 sm:mb-4 shadow-md group-hover:scale-110 transition-transform">
                     <Languages className="h-6 w-6 sm:h-6.5 sm:w-6.5 md:h-7 md:w-7 text-primary" />
                   </div>
-                  <CardTitle className="text-base sm:text-lg md:text-xl">Translate</CardTitle>
+                  <CardTitle className="text-base sm:text-lg md:text-xl">Enzonic Translate</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
                     AI-powered translation breaking language barriers
                   </CardDescription>

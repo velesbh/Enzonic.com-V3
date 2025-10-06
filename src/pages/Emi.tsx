@@ -1,11 +1,93 @@
+import { useEffect } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ServiceUnavailable from "@/components/ServiceUnavailable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Brain, Clock, MessageSquare, Sparkles, Zap, Settings, Hash, AlertCircle, Shield, Github, Code, Database } from "lucide-react";
+import { Brain, Clock, MessageSquare, Sparkles, Zap, Settings, Hash, AlertCircle, Shield, Github, Code, Database, Calculator } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useServiceStatus, recordActivity } from "@/lib/serviceApi";
+import { usePageMetadata } from "@/hooks/use-page-metadata";
+import { EnzonicLoading } from "@/components/ui/enzonic-loading";
+
 const Emi = () => {
+  usePageMetadata();
+  const { getToken, isSignedIn } = useAuth();
+  
+  // Check service availability
+  const { status: serviceStatus, loading: serviceLoading } = useServiceStatus('emi');
+
+  // Record page view activity
+  useEffect(() => {
+    const trackPageView = async () => {
+      try {
+        const token = isSignedIn ? await getToken() : undefined;
+        await recordActivity('page_view', {
+          page: 'emi',
+          url: window.location.href
+        }, token);
+      } catch (error) {
+        // Silently fail for analytics
+        console.debug('Failed to track page view:', error);
+      }
+    };
+
+    trackPageView();
+  }, [isSignedIn, getToken]);
+
+  const handleDiscordInvite = async () => {
+    try {
+      const token = isSignedIn ? await getToken() : undefined;
+      await recordActivity('service_action', {
+        service: 'emi',
+        action: 'discord_invite_click'
+      }, token);
+    } catch (error) {
+      console.debug('Failed to track discord invite:', error);
+    }
+    
+    window.open("https://discord.com/oauth2/authorize?client_id=1391530058048471101", "_blank");
+  };
+
+  const handleGithubClick = async () => {
+    try {
+      const token = isSignedIn ? await getToken() : undefined;
+      await recordActivity('service_action', {
+        service: 'emi',
+        action: 'github_click'
+      }, token);
+    } catch (error) {
+      console.debug('Failed to track github click:', error);
+    }
+    
+    window.open("https://github.com/enzonic-llc/emi", "_blank");
+  };
+
+  // If service is not available, show unavailable page
+  if (!serviceLoading && serviceStatus && !serviceStatus.available) {
+    return (
+      <ServiceUnavailable 
+        serviceName="Emi - Discord Bot" 
+        description="The Emi Discord bot service is currently disabled by the administrator."
+        icon={<Brain className="h-8 w-8 text-orange-600 dark:text-orange-400" />}
+      />
+    );
+  }
+
+  // Show loading while checking service status
+  if (serviceLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-4">
+          <EnzonicLoading size="lg" message="Checking service availability..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
   return <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <Navbar />
       
@@ -31,10 +113,10 @@ const Emi = () => {
               </Alert>
               
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-4">
-                <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow" onClick={() => window.open("https://discord.com/oauth2/authorize?client_id=1391530058048471101", "_blank")}>
+                <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow" onClick={handleDiscordInvite}>
                   Add to Discord
                 </Button>
-                <Button variant="outline" size="lg" onClick={() => window.open("https://github.com/enzonic-llc/emi", "_blank")}>
+                <Button variant="outline" size="lg" onClick={handleGithubClick}>
                   <Github className="mr-2 h-5 w-5" />
                   GitHub Repository
                 </Button>
@@ -249,7 +331,7 @@ const Emi = () => {
                       </div>
 
                       <div className="flex justify-center pt-4">
-                        <Button size="lg" onClick={() => window.open("https://discord.com/oauth2/authorize?client_id=1391530058048471101", "_blank")}>
+                        <Button size="lg" onClick={handleDiscordInvite}>
                           Add to Discord Now
                         </Button>
                       </div>
@@ -324,7 +406,7 @@ const Emi = () => {
                       </div>
 
                       <div className="flex justify-center gap-4 pt-4">
-                        <Button variant="outline" size="lg" onClick={() => window.open("https://github.com/enzonic-llc/emi", "_blank")}>
+                        <Button variant="outline" size="lg" onClick={handleGithubClick}>
                           <Github className="mr-2 h-5 w-5" />
                           View Documentation
                         </Button>
@@ -479,10 +561,10 @@ CHANNEL_ID=your_channel_id_here`}
                   (Only applies for hosted version)
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                  <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto" onClick={() => window.open("https://discord.com/oauth2/authorize?client_id=1391530058048471101", "_blank")}>
+                  <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto" onClick={handleDiscordInvite}>
                     Invite Emi Now
                   </Button>
-                  <Button variant="outline" size="lg" className="w-full sm:w-auto" onClick={() => window.open("https://github.com/enzonic-llc/emi", "_blank")}>
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto" onClick={handleGithubClick}>
                     <Github className="mr-2 h-5 w-5" />
                     GitHub Repository
                   </Button>
