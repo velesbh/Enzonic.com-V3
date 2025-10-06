@@ -3,10 +3,8 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tv, Video, Clapperboard, Sparkles } from "lucide-react";
-
 const Shows = () => {
-  return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+  return <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <Navbar />
       
       <main className="flex-1 w-full">
@@ -36,9 +34,7 @@ const Shows = () => {
               <Card className="shadow-lg border-2">
                 <CardHeader>
                   <CardTitle className="text-2xl sm:text-3xl">What Are Enzonic Shows?</CardTitle>
-                  <CardDescription className="text-base">
-                    A new kind of content experience
-                  </CardDescription>
+                  <CardDescription className="text-base">A different kind of content experience</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm sm:text-base">
                   <p className="text-muted-foreground">
@@ -61,10 +57,9 @@ const Shows = () => {
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 shadow-md">
                       <Video className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-base sm:text-lg">Funny Videos</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Comedy sketches and entertaining content that makes learning fun
-                    </CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Podcasts and Stories</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Awesome content made by Enzonic llc
+to entertain you!</CardDescription>
                   </CardHeader>
                 </Card>
 
@@ -85,10 +80,8 @@ const Shows = () => {
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 shadow-md">
                       <Sparkles className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-base sm:text-lg">Minecraft Magic</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">
-                      Creative builds and storytelling in the Minecraft universe
-                    </CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Recorded in Minecraft</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Fully recorded directly in minecraft</CardDescription>
                   </CardHeader>
                 </Card>
               </div>
@@ -105,14 +98,9 @@ const Shows = () => {
           <div className="container mx-auto px-3 sm:px-4 relative w-full">
             <div className="max-w-2xl mx-auto text-center space-y-6">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Coming Soon</h2>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                We're working hard to bring you the first season of Enzonic Shows. 
-                Stay tuned for updates on when episodes will start dropping!
-              </p>
+              <p className="text-sm sm:text-base text-muted-foreground">We're working hard to bring you the video of Enzonic Shows. Stay tuned for updates on when Videos will start dropping!</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                <Button size="lg" variant="outline" disabled>
-                  Watch Episodes (Coming Soon)
-                </Button>
+                <Button size="lg" variant="outline" disabled>YouTube</Button>
                 <Button size="lg" variant="default">
                   Subscribe for Updates
                 </Button>
@@ -123,8 +111,6 @@ const Shows = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Shows;
