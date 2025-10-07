@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import logo from "@/assets/logo.png";
 const Hero = () => {
   const scrollToContent = () => {
@@ -29,17 +30,21 @@ const Hero = () => {
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-3 sm:px-4 animate-fade-in [animation-delay:200ms]">At Enzonic, we prioritize users over company gains.
 Empowering individuals and businesses with innovative, affordable, and accessible services</p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-3 sm:px-4 animate-fade-in [animation-delay:300ms]">
-            <Button asChild size="lg" className="rounded-full w-full sm:w-auto shadow-lg hover:shadow-xl transition-all hover:scale-105">
-              <Link to="/support">
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-full w-full sm:w-auto border-2 hover:bg-primary/10 transition-all">
-              <Link to="#team">Meet Our Team</Link>
-            </Button>
-          </div>
+          <SignedOut>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-3 sm:px-4 animate-fade-in [animation-delay:300ms]">
+              <SignInButton mode="modal">
+                <Button size="lg" className="rounded-full w-full sm:w-auto shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                  Sign In
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button variant="outline" size="lg" className="rounded-full w-full sm:w-auto border-2 hover:bg-primary/10 transition-all">
+                  Sign Up
+                </Button>
+              </SignUpButton>
+            </div>
+          </SignedOut>
         </div>
       </div>
 

@@ -40,16 +40,6 @@ const Navbar = () => {
             <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text">{branding.name}</span>
           </Link>
 
-          {/* Full navbar for all pages */}
-          <div className="hidden md:flex items-center gap-4 lg:gap-6">
-            <Link to="/" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
-              Home
-            </Link>
-            <a href="mailto:admin@enzonic.com" className="text-sm font-medium hover:text-primary transition-colors whitespace-nowrap">
-              Support
-            </a>
-          </div>
-
           {/* Mobile Menu */}
           <div className="md:hidden">
             <Sheet>
@@ -61,22 +51,16 @@ const Navbar = () => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px]">
                 <nav className="flex flex-col gap-4 mt-8">
-                  <Link to="/" className="text-base font-medium hover:text-primary transition-colors px-2 py-1">
-                    Home
-                  </Link>
-                  <div className="border-t border-border my-2" />
-                  <a href="mailto:admin@enzonic.com" className="text-base font-medium hover:text-primary transition-colors px-2 py-1">
-                    Support
-                  </a>
+                  {/* Mobile menu is now empty but can be used for future navigation items */}
                 </nav>
               </SheetContent>
             </Sheet>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 hover:text-primary transition-all">
+                <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 hover:text-primary transition-all h-10 w-10 flex items-center justify-center">
                   <Grid3x3 className="h-5 w-5" />
                   <span className="sr-only">Apps menu</span>
                 </Button>
@@ -86,7 +70,7 @@ const Navbar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="rounded-full hover:bg-primary/10 hover:text-primary transition-all">
+            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="rounded-full hover:bg-primary/10 hover:text-primary transition-all h-10 w-10 flex items-center justify-center">
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
@@ -94,18 +78,20 @@ const Navbar = () => {
 
             <SignedOut>
               <SignInButton mode="modal">
-                <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10 hidden sm:flex">
+                <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10 hidden sm:flex items-center justify-center h-10 px-4 text-sm font-medium min-w-[80px]">
                   Sign In
                 </Button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <Button variant="default" size="sm" className="rounded-full shadow-lg hover:shadow-xl transition-shadow text-xs sm:text-sm">
+                <Button variant="default" size="sm" className="rounded-full shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center h-10 px-4 text-sm font-medium min-w-[80px]">
                   Sign Up
                 </Button>
               </SignUpButton>
             </SignedOut>
             <SignedIn>
-              <UserButton afterSignOutUrl="/" />
+              <div className="flex items-center justify-center h-10 w-10">
+                <UserButton afterSignOutUrl="/" />
+              </div>
             </SignedIn>
           </div>
         </div>
