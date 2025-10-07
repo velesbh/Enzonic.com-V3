@@ -6,13 +6,16 @@ import { useTheme } from "@/components/ThemeProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import AppGrid from "@/components/AppGrid";
-import logo from "@/assets/logo.png";
-import emiLogo from "@/assets/emi-logo.png";
-import boxesLogo from "@/assets/boxes-logo.png";
-import translateLogo from "@/assets/translate-logo.png";
+import { useScroll } from "@/hooks/use-scroll";
+const logo = "/logo.png";
+const emiLogo = "/emi.png";
+const boxesLogo = "/boxes.png";
+const translateLogo = "/translate.png";
+const showsLogo = "/show.png";
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const { isScrolled, scrollDirection } = useScroll();
 
   // Get service-specific branding with consistent naming
   const getServiceBranding = () => {
@@ -23,6 +26,8 @@ const Navbar = () => {
         return { name: 'ENZONIC TRANSLATE', icon: translateLogo };
       case '/emi':
         return { name: 'ENZONIC EMI', icon: emiLogo };
+      case '/shows':
+        return { name: 'ENZONIC SHOWS', icon: showsLogo };
       default:
         return { name: 'ENZONIC', icon: logo };
     }
@@ -30,8 +35,19 @@ const Navbar = () => {
 
   const branding = getServiceBranding();
 
-  return <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm w-full">
-      <div className="container mx-auto px-3 sm:px-4">
+  // Dynamic navbar classes based on scroll state
+  const navbarClasses = `
+    ${isScrolled 
+      ? 'fixed top-4 left-2 right-2 sm:left-4 sm:right-4 md:left-6 md:right-6 lg:left-8 lg:right-8 bg-background/95 backdrop-blur-xl border border-border/70 shadow-2xl rounded-2xl' 
+      : 'sticky top-0 w-full bg-background/95 backdrop-blur border-b border-border/50 shadow-sm rounded-none'
+    }
+    z-50 transition-all duration-500 ease-out
+    ${scrollDirection === 'down' && isScrolled ? 'opacity-95' : 'opacity-100'}
+    supports-[backdrop-filter]:bg-background/80
+  `.replace(/\s+/g, ' ').trim();
+
+  return <nav className={navbarClasses}>
+      <div className={`transition-all duration-500 ${isScrolled ? 'px-4 sm:px-6' : 'container mx-auto px-3 sm:px-4'}`}>
         <div className="flex h-14 sm:h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-1.5 sm:gap-2 group flex-shrink-0">
             {branding.icon && (
@@ -65,7 +81,7 @@ const Navbar = () => {
                   <span className="sr-only">Apps menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="p-0 border-0 shadow-2xl">
+              <DropdownMenuContent align="end" className="p-0 border-0 shadow-2xl bg-transparent backdrop-blur-xl">
                 <AppGrid />
               </DropdownMenuContent>
             </DropdownMenu>

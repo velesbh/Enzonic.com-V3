@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "@/assets/logo.png";
+const logo = "/logo.png";
 const Footer = () => {
   return <footer className="border-t border-border bg-card/50 backdrop-blur-sm mt-auto w-full">
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">

@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { User } from "lucide-react";
-import logo from "@/assets/logo.png";
+const logo = "/logo.png";
 
 const teamMembers = [
   { name: "Veles BH", role: "Co-Founder" },

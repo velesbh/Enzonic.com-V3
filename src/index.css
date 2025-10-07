@@ -106,6 +106,48 @@ All colors MUST be HSL.
     background-size: 60px 60px;
   }
   
+  /* Floating navbar spacing utility */
+  .floating-navbar-spacing {
+    padding-top: 5rem; /* Space for floating navbar */
+  }
+  
+  @media (min-width: 640px) {
+    .floating-navbar-spacing {
+      padding-top: 6rem; /* Larger space on bigger screens */
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .floating-navbar-spacing {
+      padding-top: 6.5rem; /* Even more space on tablets+ */
+    }
+  }
+  
+  /* Smooth scroll behavior for floating navbar interactions */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure floating elements don't interfere with touch interactions */
+  @media (hover: none) {
+    .floating-navbar-spacing {
+      padding-top: 5.5rem; /* Slightly more space on touch devices */
+    }
+  }
+  
+  /* Enhanced glassmorphism effect for floating elements */
+  .glass-effect {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .dark .glass-effect {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
   [style*="--animation-delay"] {
     animation-delay: var(--animation-delay);
   }

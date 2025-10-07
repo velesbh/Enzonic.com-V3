@@ -260,7 +260,7 @@ const Translate = () => {
       <Navbar />
       
       <main className="flex-1 w-full">
-        <section className="py-12 sm:py-16 md:py-20 relative w-full overflow-hidden">
+        <section className="py-8 sm:py-12 md:py-16 relative w-full overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-primary/5" />
           <div className="container mx-auto px-4 relative">
             <div className="max-w-5xl mx-auto space-y-8">

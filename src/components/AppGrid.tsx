@@ -11,16 +11,16 @@ const apps = [
 
 const AppGrid = () => {
   return (
-    <div className="w-80 p-6 bg-card/95 backdrop-blur-sm rounded-2xl shadow-xl">
+    <div className="w-80 p-6 bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 supports-[backdrop-filter]:bg-card/90">
       <div className="grid grid-cols-3 gap-3">{apps.map((app) => {
           const Icon = app.icon;
           return (
             <Link
               key={app.path}
               to={app.path}
-              className="flex flex-col items-center justify-start p-4 rounded-2xl hover:bg-muted/60 transition-all group hover:scale-105 min-h-[100px] text-center"
+              className="flex flex-col items-center justify-start p-4 rounded-2xl hover:bg-primary/10 transition-all group hover:scale-105 min-h-[100px] text-center backdrop-blur-sm"
             >
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-all shadow-md group-hover:shadow-lg">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-all shadow-md group-hover:shadow-lg backdrop-blur-sm">
                 <Icon className="h-7 w-7 text-primary" />
               </div>
               <span className="text-xs font-medium leading-tight break-words w-full px-1">{app.name}</span>

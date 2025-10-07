@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Mail } from "lucide-react";
-import logo from "@/assets/logo.png";
+const logo = "/logo.png";
 const Newsletter = () => {
   const [email, setEmail] = useState("");
   const {
