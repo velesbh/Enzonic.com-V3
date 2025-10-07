@@ -19,5 +19,5 @@ export const env = {
   CLERK_PUBLISHABLE_KEY: getEnvVar('VITE_CLERK_PUBLISHABLE_KEY'),
   OPENAI_API_KEY: getEnvVar('VITE_OPENAI_API_KEY'),
   OPENAI_API_URL: getEnvVarOptional('VITE_OPENAI_API_URL', 'https://ai-api.enzonic.me/api/v1/chat/completions'),
-  API_URL: getEnvVarOptional('VITE_API_URL', 'http://localhost:8080'),
+  API_URL: getEnvVarOptional('VITE_API_URL', ''),
 } as const;

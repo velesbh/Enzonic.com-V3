@@ -8,6 +8,12 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: [
+      "dev.enzonic.online",
+      "localhost",
+      "127.0.0.1",
+      "::1"
+    ],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

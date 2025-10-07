@@ -13,7 +13,13 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'], // Add your frontend URLs
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:3000', 
+    'http://localhost:8080',
+    'https://dev.enzonic.online',
+    'https://dev-api.enzonic.online'
+  ], // Add your frontend URLs
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
