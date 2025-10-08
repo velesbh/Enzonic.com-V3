@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
 import { authenticateAdmin } from '../middleware/adminAuth.js';
+import privacyRoutes from './privacy.js';
 import {
   getAdminStatus,
   getEnvironmentVariables,
@@ -50,5 +51,8 @@ router.get('/health', getSystemHealth);
 // Activity tracking endpoints (for frontend)
 router.post('/track/page-view', trackPageView);
 router.post('/track/interaction', trackInteraction);
+
+// Privacy management routes
+router.use('/privacy', privacyRoutes);
 
 export default router;

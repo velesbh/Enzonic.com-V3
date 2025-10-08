@@ -24,6 +24,7 @@ import { sendChatCompletion, parseStreamingResponse, AI_MODELS, AIModel, ChatCom
 import { useServiceStatus, recordActivity } from "@/lib/serviceApi";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 import { EnzonicLoading } from "@/components/ui/enzonic-loading";
+import { TypingIndicator, StreamingText, ChatBubbleLoading } from "@/components/ui/typing-indicator";
 import { useTheme } from "@/components/ThemeProvider";
 import { ModelAvatar } from "@/components/ui/model-avatar";
 import AppGrid from "@/components/AppGrid";
@@ -1015,7 +1016,7 @@ const Chatbot = () => {
 
   // Show loading screen while checking service status
   if (serviceLoading) {
-    return <EnzonicLoading />;
+    return <EnzonicLoading size="xl" message="Initializing Enzonic AI..." variant="sparkle" />;
   }
 
   // Only show service unavailable if explicitly disabled (default to available)
@@ -1503,7 +1504,7 @@ const Chatbot = () => {
                               onClick={stopGeneration}
                               size="icon"
                               variant="destructive"
-                              className="h-10 w-10 rounded-xl"
+                              className="h-10 w-10 rounded-xl animate-pulse-glow"
                             >
                               <Square className="w-5 h-5" />
                             </Button>
@@ -1512,9 +1513,20 @@ const Chatbot = () => {
                               onClick={handleSendMessage}
                               disabled={!message.trim()}
                               size="icon"
-                              className="h-10 w-10 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-50"
+                              className={cn(
+                                "h-10 w-10 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-50 transition-all duration-200",
+                                !message.trim() && "cursor-not-allowed",
+                                message.trim() && "hover:scale-105 hover:shadow-lg"
+                              )}
                             >
-                              <ArrowUp className="w-5 h-5" />
+                              <ArrowUp className={cn(
+                                "w-5 h-5 transition-transform duration-200",
+                                message.trim() && "group-hover:scale-110"
+                              )} />
+                              {/* Loading shimmer effect */}
+                              {message.trim() && (
+                                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full hover:animate-shimmer opacity-0 hover:opacity-100 transition-opacity" />
+                              )}
                             </Button>
                           )}
                         </div>
@@ -1756,6 +1768,14 @@ const Chatbot = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Typing indicator when AI is responding */}
+                  {(isStreaming || isLoading) && (
+                    <div className="px-6 py-4">
+                      <ChatBubbleLoading variant="ai" size="md" />
+                    </div>
+                  )}
+                  
                   <div ref={messagesEndRef} />
                 </div>
               )}

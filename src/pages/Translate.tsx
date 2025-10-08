@@ -17,6 +17,7 @@ import { saveTranslationToHistory } from "@/lib/translationApi";
 import { useServiceStatus, recordActivity } from "@/lib/serviceApi";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 import { EnzonicLoading } from "@/components/ui/enzonic-loading";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 const Translate = () => {
   usePageMetadata();
@@ -69,7 +70,7 @@ const Translate = () => {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1 flex items-center justify-center p-4">
-          <EnzonicLoading size="lg" message="Checking service availability..." />
+          <EnzonicLoading size="lg" message="Checking service availability..." variant="orbit" />
         </main>
         <Footer />
       </div>
@@ -410,16 +411,18 @@ const Translate = () => {
                 </div>
 
                 {/* Translate Button */}
-                <Button onClick={handleTranslate} disabled={isTranslating || !sourceText.trim()} className="w-full rounded-full" size="lg">
-                  {isTranslating ? (
-                    <EnzonicLoading size="sm" variant="minimal" message="Translating..." showLogo={false} />
-                  ) : (
-                    <>
-                      <Languages className="mr-2 h-4 w-4" />
-                      Translate
-                    </>
-                  )}
-                </Button>
+                <LoadingButton 
+                  onClick={handleTranslate} 
+                  loading={isTranslating}
+                  loadingText="Translating..."
+                  loadingVariant="wave"
+                  disabled={!sourceText.trim()} 
+                  className="w-full rounded-full" 
+                  size="lg"
+                  icon={<Languages className="h-4 w-4" />}
+                >
+                  Translate
+                </LoadingButton>
               </CardContent>
             </Card>
 

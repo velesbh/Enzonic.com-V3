@@ -13,6 +13,7 @@ import { getRealtimeData } from '@/lib/serviceApi';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PrivacyRightsManagement from "@/components/PrivacyRightsManagement";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -383,7 +384,7 @@ const Admin = () => {
             </div>
 
             <Tabs defaultValue="overview" className="space-y-8">
-              <TabsList className="grid w-full max-w-3xl grid-cols-4">
+              <TabsList className="grid w-full max-w-4xl grid-cols-5">
                 <TabsTrigger value="overview">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Overview
@@ -395,6 +396,10 @@ const Admin = () => {
                 <TabsTrigger value="services">
                   <Package className="h-4 w-4 mr-2" />
                   Services
+                </TabsTrigger>
+                <TabsTrigger value="privacy">
+                  <Lock className="h-4 w-4 mr-2" />
+                  Privacy Rights
                 </TabsTrigger>
                 <TabsTrigger value="monitoring">
                   <Activity className="h-4 w-4 mr-2" />
@@ -766,6 +771,10 @@ const Admin = () => {
                     </Card>
                   ))}
                 </div>
+              </TabsContent>
+
+              <TabsContent value="privacy" className="space-y-6">
+                <PrivacyRightsManagement />
               </TabsContent>
 
               <TabsContent value="monitoring" className="space-y-6">

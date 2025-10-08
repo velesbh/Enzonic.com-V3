@@ -55,6 +55,40 @@ export const getLiveStatistics = (token: string) =>
 export const getSystemHealth = (token: string) => 
   adminApiCall('/health', {}, token);
 
+// Privacy management functions
+export const getAllPrivacyRequests = (token: string) =>
+  adminApiCall('/privacy/requests', {}, token);
+
+export const getUserPersonalData = (userId: string, token: string) =>
+  adminApiCall(`/privacy/user-data/${userId}`, {}, token);
+
+export const createPrivacyRequest = (requestData: any, token: string) =>
+  adminApiCall('/privacy/requests', {
+    method: 'POST',
+    body: JSON.stringify(requestData)
+  }, token);
+
+export const updatePrivacyRequestStatus = (requestId: string, statusData: any, token: string) =>
+  adminApiCall(`/privacy/requests/${requestId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify(statusData)
+  }, token);
+
+export const processErasureRequest = (requestData: any, token: string) =>
+  adminApiCall('/privacy/requests/erasure', {
+    method: 'POST',
+    body: JSON.stringify(requestData)
+  }, token);
+
+export const generateDataExport = (exportData: any, token: string) =>
+  adminApiCall('/privacy/export', {
+    method: 'POST',
+    body: JSON.stringify(exportData)
+  }, token);
+
+export const getPrivacyAuditLog = (requestId: string, token: string) =>
+  adminApiCall(`/privacy/requests/${requestId}/audit`, {}, token);
+
 // Real-time data refresh
 export const refreshAllData = async (token: string) => {
   try {

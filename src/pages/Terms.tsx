@@ -28,54 +28,149 @@ const Terms = () => {
 
               <div>
                 <h2 className="text-2xl font-semibold mb-4">2. Description of Services</h2>
+                <p className="text-muted-foreground mb-4">
+                  Enzonic LLC provides innovative, user-centric, and eco-friendly solutions, including:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li><strong>AI Services:</strong> Chatbots, language translation, content generation, and AI-powered tools</li>
+                  <li><strong>Emi Discord Bot:</strong> AI-powered Discord bot with memory and intelligent conversation capabilities</li>
+                  <li><strong>Virtual Browser Sessions (Boxes):</strong> Secure, isolated virtual machine browser sessions powered by Kasm</li>
+                  <li><strong>Entertainment Content (Shows):</strong> Educational and entertainment content services</li>
+                  <li><strong>Translation Services:</strong> Multi-language AI translation tools</li>
+                </ul>
+                <p className="text-muted-foreground mb-4">
+                  We reserve the right to modify, suspend, or discontinue any aspect of our services at any time without prior notice.
+                </p>
                 <p className="text-muted-foreground">
-                  Enzonic LLC provides innovative, user-centric, and eco-friendly solutions. We reserve 
-                  the right to modify, suspend, or discontinue any aspect of our services at any time 
-                  without prior notice.
+                  Our AI services are provided "as is" and are intended for general informational and 
+                  assistance purposes only. AI-generated content should not be considered as professional 
+                  advice and may contain inaccuracies or limitations. Virtual browser sessions are isolated 
+                  environments with auto-delete functionality for security purposes.
                 </p>
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">3. User Responsibilities</h2>
+                <h2 className="text-2xl font-semibold mb-4">3. AI Services and Limitations</h2>
+                <p className="text-muted-foreground mb-4">
+                  When using our AI services, you acknowledge and agree that:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                  <li>AI responses are generated automatically and may contain errors, inaccuracies, or inappropriate content</li>
+                  <li>AI-generated content does not constitute professional advice (medical, legal, financial, etc.)</li>
+                  <li>You should verify and validate AI-generated information before relying on it</li>
+                  <li>We do not guarantee the accuracy, completeness, or reliability of AI outputs</li>
+                  <li>AI services may have usage limitations, rate limits, or temporary unavailability</li>
+                  <li>You are responsible for reviewing AI-generated content before use or publication</li>
+                  <li>Our AI models are trained on diverse data sources and may reflect biases present in training data</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">4. User Responsibilities</h2>
                 <p className="text-muted-foreground mb-4">
                   Users of our services agree to:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>Provide accurate and complete information</li>
                   <li>Maintain the security of account credentials</li>
-                  <li>Use services in compliance with applicable laws</li>
+                  <li>Use services in compliance with applicable laws and regulations</li>
                   <li>Not engage in unauthorized access or misuse of services</li>
+                  <li>Not use AI services to generate harmful, illegal, or inappropriate content</li>
+                  <li>Not attempt to reverse-engineer, extract, or replicate our AI models</li>
+                  <li>Not use our services to create competing AI products or services</li>
+                  <li>Respect intellectual property rights and not infringe on third-party rights</li>
+                  <li>Not use AI services for automated decision-making affecting individuals without proper safeguards</li>
                 </ul>
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">4. Intellectual Property</h2>
+                <h2 className="text-2xl font-semibold mb-4">5. Content and Data Usage</h2>
+                <p className="text-muted-foreground mb-4">
+                  Regarding content and data usage:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                  <li>You retain ownership of content you input into our AI services</li>
+                  <li>You grant us a limited license to process your inputs to provide AI services</li>
+                  <li>We use your data only for providing services and anonymized statistics</li>
+                  <li><strong>We do NOT train AI models on your personal data or conversations, except for G-Coder which may use coding-related inputs to improve programming assistance</strong></li>
+                  <li>You are responsible for ensuring you have rights to any content you input</li>
+                  <li>AI-generated outputs may not be eligible for copyright protection</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">6. Intellectual Property</h2>
                 <p className="text-muted-foreground">
-                  All content, trademarks, and intellectual property on this website are owned by 
-                  Enzonic LLC. Unauthorized use, reproduction, or distribution is strictly prohibited.
+                  All content and intellectual property on this website and in our services 
+                  are owned by Enzonic LLC or our licensors. This includes our AI models, algorithms, 
+                  and proprietary technologies. While we have not registered any trademarks, our brand names, 
+                  logos, and service names are proprietary to Enzonic LLC. Unauthorized use, reproduction, 
+                  or distribution is strictly prohibited.
                 </p>
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">5. Limitation of Liability</h2>
+                <h2 className="text-2xl font-semibold mb-4">7. Disclaimer of Warranties and Limitation of Liability</h2>
+                <p className="text-muted-foreground mb-4">
+                  <strong>DISCLAIMER:</strong> Our services, including AI services, are provided "AS IS" and "AS AVAILABLE" 
+                  without warranties of any kind, either express or implied. We specifically disclaim all warranties 
+                  regarding:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li>Accuracy, reliability, or completeness of AI-generated content</li>
+                  <li>Fitness for a particular purpose or non-infringement</li>
+                  <li>Uninterrupted or error-free operation of AI services</li>
+                  <li>Security or privacy of data processed by AI systems</li>
+                </ul>
+                <p className="text-muted-foreground mb-4">
+                  <strong>LIMITATION OF LIABILITY:</strong> TO THE MAXIMUM EXTENT PERMITTED BY LAW, ENZONIC LLC SHALL NOT BE LIABLE FOR:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li>Any decisions made based on AI-generated content or recommendations</li>
+                  <li>Inaccurate, harmful, or inappropriate AI outputs</li>
+                  <li>Any indirect, incidental, special, consequential, or punitive damages</li>
+                  <li>Loss of profits, data, or business opportunities</li>
+                  <li>Any damages exceeding the amount paid for our services in the preceding 12 months</li>
+                </ul>
                 <p className="text-muted-foreground">
-                  Enzonic LLC shall not be liable for any indirect, incidental, special, or consequential 
-                  damages arising from the use or inability to use our services, even if we have been 
-                  advised of the possibility of such damages.
+                  You acknowledge that AI technology has inherent limitations and agree to use our AI services 
+                  at your own risk. Some jurisdictions do not allow the exclusion of certain warranties or 
+                  limitation of liability, so these limitations may not apply to you.
                 </p>
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">6. Governing Law</h2>
+                <h2 className="text-2xl font-semibold mb-4">8. Indemnification</h2>
+                <p className="text-muted-foreground">
+                  You agree to indemnify, defend, and hold harmless Enzonic LLC and its officers, directors, 
+                  employees, and agents from any claims, damages, losses, or expenses (including attorney's fees) 
+                  arising from: (a) your use of our AI services; (b) your violation of these terms; 
+                  (c) your violation of any third-party rights; or (d) any decisions made based on AI-generated content.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">9. Governing Law and Dispute Resolution</h2>
                 <p className="text-muted-foreground">
                   These Terms of Service shall be governed by and construed in accordance with the laws 
                   of the Commonwealth of Kentucky, United States, without regard to its conflict of law 
-                  provisions.
+                  provisions. Any disputes arising from these terms or your use of our services shall be 
+                  resolved through binding arbitration in accordance with the American Arbitration Association's 
+                  Commercial Arbitration Rules.
                 </p>
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">7. Contact Information</h2>
+                <h2 className="text-2xl font-semibold mb-4">10. Modifications and Termination</h2>
+                <p className="text-muted-foreground">
+                  We reserve the right to modify these terms at any time. Changes will be effective immediately 
+                  upon posting. We may terminate or suspend your access to our services at any time, with or 
+                  without notice, for any reason, including violation of these terms.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">11. Contact Information</h2>
                 <p className="text-muted-foreground">
                   For questions about these Terms of Service, please contact us at{" "}
                   <a href="mailto:admin@enzonic.com" className="text-primary hover:underline">
