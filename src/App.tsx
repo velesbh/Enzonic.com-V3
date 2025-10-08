@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import Translate from "./pages/Translate";
+import Chatbot from "./pages/Chatbot";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Boxes from "./pages/Boxes";
@@ -41,6 +42,7 @@ const App = () => (
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/support" element={<Support />} />
                   <Route path="/translate" element={<Translate />} />
+                  <Route path="/chatbot" element={<Chatbot />} />
                   <Route path="/boxes" element={<Boxes />} />
                   <Route path="/emi" element={<Emi />} />
                   <Route path="/shows" element={<Shows />} />

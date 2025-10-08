@@ -103,6 +103,40 @@ export async function initializeDatabase() {
       )
     `);
 
+    // Create chat_history table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS chat_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        user_message TEXT NOT NULL,
+        assistant_message TEXT NOT NULL,
+        model VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id),
+        INDEX idx_created_at (created_at),
+        INDEX idx_model (model)
+      )
+    `);
+
+    // Create chat_sessions table
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS chat_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        session_id VARCHAR(255) NOT NULL,
+        session_name VARCHAR(255) NOT NULL,
+        messages JSON NOT NULL,
+        model VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_user_id (user_id),
+        INDEX idx_session_id (session_id),
+        INDEX idx_created_at (created_at),
+        INDEX idx_model (model),
+        UNIQUE KEY unique_user_session (user_id, session_id)
+      )
+    `);
+
     // Insert default service configurations if they don't exist
     await initializeDefaultServices(connection);
     
@@ -158,6 +192,106 @@ export async function getTranslationHistory(userId) {
     return rows;
   } catch (error) {
     console.error('Error fetching translation history:', error);
+    throw error;
+  }
+}
+
+// Save chat to history
+export async function saveChat(userId, userMessage, assistantMessage, model) {
+  try {
+    const [result] = await pool.execute(
+      `INSERT INTO chat_history (user_id, user_message, assistant_message, model) 
+       VALUES (?, ?, ?, ?)`,
+      [userId, userMessage, assistantMessage, model]
+    );
+    
+    // Keep only last 10 chat exchanges for this user
+    await pool.execute(
+      `DELETE FROM chat_history 
+       WHERE user_id = ? 
+       AND id NOT IN (
+         SELECT id FROM (
+           SELECT id FROM chat_history 
+           WHERE user_id = ? 
+           ORDER BY created_at DESC 
+           LIMIT 10
+         ) AS keep_records
+       )`,
+      [userId, userId]
+    );
+    
+    return result.insertId;
+  } catch (error) {
+    console.error('Error saving chat:', error);
+    throw error;
+  }
+}
+
+// Get chat history for user
+export async function getChatHistory(userId) {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT * FROM chat_history 
+       WHERE user_id = ? 
+       ORDER BY created_at DESC 
+       LIMIT 10`,
+      [userId]
+    );
+    return rows;
+  } catch (error) {
+    console.error('Error fetching chat history:', error);
+    throw error;
+  }
+}
+
+// Save chat session
+export async function saveChatSession(userId, sessionId, sessionName, messages, model) {
+  try {
+    const [result] = await pool.execute(
+      `INSERT INTO chat_sessions (user_id, session_id, session_name, messages, model) 
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE 
+       session_name = VALUES(session_name),
+       messages = VALUES(messages),
+       model = VALUES(model),
+       updated_at = CURRENT_TIMESTAMP`,
+      [userId, sessionId, sessionName, messages, model]
+    );
+    return sessionId;
+  } catch (error) {
+    console.error('Error saving chat session:', error);
+    throw error;
+  }
+}
+
+// Get chat sessions for user
+export async function getChatSessions(userId) {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT * FROM chat_sessions 
+       WHERE user_id = ? 
+       ORDER BY updated_at DESC 
+       LIMIT 50`,
+      [userId]
+    );
+    return rows;
+  } catch (error) {
+    console.error('Error fetching chat sessions:', error);
+    throw error;
+  }
+}
+
+// Delete chat session
+export async function deleteChatSession(userId, sessionId) {
+  try {
+    const [result] = await pool.execute(
+      `DELETE FROM chat_sessions 
+       WHERE user_id = ? AND session_id = ?`,
+      [userId, sessionId]
+    );
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('Error deleting chat session:', error);
     throw error;
   }
 }
@@ -240,6 +374,16 @@ async function initializeDefaultServices(connection) {
         enabled: true,
         endpoint: '/translate',
         color: '#3B82F6'
+      },
+      {
+        id: 'chatbot',
+        name: 'AI Chatbot',
+        logo: null,
+        icon: 'MessageCircle',
+        description: 'Intelligent conversational AI with multiple specialized models',
+        enabled: true,
+        endpoint: '/chatbot',
+        color: '#8B5CF6'
       },
       {
         id: 'boxes',

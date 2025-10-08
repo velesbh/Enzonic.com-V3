@@ -314,13 +314,13 @@ export function logApiUsageMiddleware(serviceId) {
         try {
           await logApiUsage(
             req.userId || 'anonymous',
-            serviceId,
+            serviceId || 'unknown',
             req.originalUrl,
             req.method,
             res.statusCode,
             responseTime,
-            req.ip,
-            req.get('User-Agent')
+            req.ip || 'unknown',
+            req.get('User-Agent') || 'unknown'
           );
         } catch (error) {
           console.error('Error logging API usage:', error);

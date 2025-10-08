@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { initializeDatabase } from './database/config.js';
 import translationRoutes from './routes/translations.js';
+import chatRoutes from './routes/chats.js';
 import adminRoutes from './routes/admin.js';
 
 // Load environment variables
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/translations', translationRoutes);
+app.use('/api/chats', chatRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check endpoint

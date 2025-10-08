@@ -26,12 +26,12 @@ export async function authenticateUser(req, res, next) {
       setImmediate(async () => {
         try {
           await recordStatistic('api_access', {
-            userId: sessionClaims.sub,
-            endpoint: req.originalUrl,
-            method: req.method,
+            userId: sessionClaims.sub || 'unknown',
+            endpoint: req.originalUrl || 'unknown',
+            method: req.method || 'unknown',
             timestamp: new Date().toISOString(),
-            ip: req.ip,
-            userAgent: req.get('User-Agent')
+            ip: req.ip || 'unknown',
+            userAgent: req.get('User-Agent') || 'unknown'
           });
         } catch (error) {
           // Silently fail - don't interrupt the main request

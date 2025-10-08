@@ -43,9 +43,10 @@ export async function checkServiceStatus(serviceId: string): Promise<ServiceStat
     };
   } catch (error) {
     console.error('Error checking service status:', error);
+    // Default to available when API fails to prevent blocking access
     return {
       serviceId,
-      available: false,
+      available: true,
       timestamp: new Date().toISOString()
     };
   }
