@@ -111,74 +111,39 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-hidden relative">
-      {/* Cool green-themed background */}
+    <div className="min-h-screen flex flex-col w-full overflow-x-hidden bg-background">
+      {/* Simple clean background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Dynamic gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/8 to-green-500/5" />
+        {/* Light gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background to-primary/5" />
         
-        {/* Animated geometric shapes - green theme */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-primary/15 to-green-500/15 rotate-45 rounded-xl animate-pulse" style={{animationDuration: '4s'}} />
-        <div className="absolute bottom-40 right-16 w-24 h-24 bg-gradient-to-br from-green-500/15 to-primary/15 rounded-full animate-float" />
-        <div className="absolute top-1/2 left-10 w-16 h-40 bg-gradient-to-b from-primary/10 to-transparent rounded-full animate-pulse" style={{animationDuration: '3s'}} />
-        <div className="absolute bottom-20 left-1/3 w-20 h-20 bg-gradient-to-br from-emerald-500/12 to-primary/12 rotate-12 rounded-lg animate-float" style={{animationDelay: '1s'}} />
-        
-        {/* Flowing orbs - green theme */}
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary/12 to-green-500/12 rounded-full blur-3xl animate-float" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-emerald-500/12 to-primary/12 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}} />
-        
-        {/* Subtle grid overlay */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="bg-grid-pattern" />
-        </div>
+        {/* Subtle geometric accents */}
+        <div className="absolute top-20 right-20 w-24 h-24 bg-primary/5 rounded-full" />
+        <div className="absolute bottom-20 left-20 w-32 h-32 bg-green-500/5 rounded-full" />
+        <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-primary/10 rotate-45 rounded-lg" />
       </div>
 
       <Navbar />
-      
-
-      
       <main className="flex-1 w-full flex flex-col justify-center items-center px-6 relative z-10 min-h-screen">
-        {/* Epic Animated Title - One Line */}
-        <div className="text-center mb-16 relative">
-          <div className="relative group">
-            {/* Main title with cool effects - Single line */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black mb-6 relative cursor-default">
-              {/* Background glow effect */}
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent blur-sm opacity-50 animate-pulse">
-                Enzonic Search
-              </span>
-              {/* Main text with green gradient */}
-              <span className="relative bg-gradient-to-r from-primary via-green-500 to-primary bg-clip-text text-transparent animate-glow bg-size-200 bg-pos-0 hover:bg-pos-100 transition-all duration-3000">
-                Enzonic Search
-              </span>
-              {/* Animated underline */}
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-1 bg-gradient-to-r from-primary to-green-500 group-hover:w-full transition-all duration-1000 rounded-full" />
-            </h1>
-            
-            {/* Cool description with fade-in */}
-            <div className="relative">
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                <span className="bg-gradient-to-r from-muted-foreground to-primary/70 bg-clip-text text-transparent font-medium">
-                  Discover the Web with Innovation & Intelligence
-                </span>
-              </p>
-              
-              {/* Floating accent elements */}
-              <div className="absolute -top-4 -left-4 w-2 h-2 bg-primary/50 rounded-full animate-ping" style={{animationDelay: '0.5s'}} />
-              <div className="absolute -bottom-2 -right-6 w-1.5 h-1.5 bg-green-500/50 rounded-full animate-ping" style={{animationDelay: '1.5s'}} />
-            </div>
-          </div>
+        {/* Clean Title */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6">
+            <span className="bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
+              Enzonic Search
+            </span>
+          </h1>
+          
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Discover the Web with Innovation & Intelligence
+          </p>
         </div>
 
-        {/* Enhanced Search Bar with Autocomplete - Green theme */}
-        <div className="w-full max-w-2xl mb-12 relative group">
+        {/* Clean Search Bar */}
+        <div className="w-full max-w-2xl mb-12 relative">
           <form onSubmit={handleSearch}>
             <div className="relative">
-              {/* Animated border glow - green theme */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-green-500 to-primary rounded-full blur opacity-0 group-hover:opacity-30 transition duration-1000" />
-              
-              <div className="relative bg-background/95 backdrop-blur-xl rounded-full border-2 border-border/60 shadow-xl hover:shadow-2xl hover:border-primary/50 transition-all duration-500 group-hover:scale-[1.02]">
-                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors" />
+              <div className="bg-background border-2 border-border rounded-full shadow-lg hover:border-primary/50 transition-all">
+                <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   type="text"
                   placeholder="Search the infinite web..."
@@ -186,15 +151,14 @@ const Index = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  className="pl-16 pr-24 py-7 text-lg rounded-full border-0 bg-transparent focus:ring-2 focus:ring-primary/40 focus:ring-offset-0 placeholder:text-muted-foreground/60 font-medium"
+                  className="pl-16 pr-24 py-6 text-lg rounded-full border-0 bg-transparent focus:ring-2 focus:ring-primary/40"
                 />
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="rounded-full w-9 h-9 p-0 hover:bg-primary/15 hover:text-primary transition-all hover:scale-110"
-                    title="Voice search"
+                    className="rounded-full w-9 h-9 p-0 hover:bg-primary/10"
                   >
                     <Mic className="h-4 w-4" />
                   </Button>
@@ -202,51 +166,32 @@ const Index = () => {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="rounded-full w-9 h-9 p-0 hover:bg-primary/15 hover:text-primary transition-all hover:scale-110"
-                    title="Visual search"
+                    className="rounded-full w-9 h-9 p-0 hover:bg-primary/10"
                   >
                     <Camera className="h-4 w-4" />
                   </Button>
-                  <div className="w-px h-6 bg-border/50" />
-                  <Globe className="h-4 w-4 text-primary/60" />
                 </div>
               </div>
 
               {/* Autocomplete Suggestions */}
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-2xl border border-border/60 shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-xl shadow-lg overflow-hidden z-50">
                   {suggestions.map((suggestion, index) => (
                     <button
                       key={index}
                       type="button"
-                      className="w-full px-6 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border/30 last:border-b-0 flex items-center gap-3"
+                      className="w-full px-6 py-3 text-left hover:bg-muted transition-colors border-b border-border last:border-b-0 flex items-center gap-3"
                       onMouseDown={(e) => {
                         e.preventDefault();
                         setSearchQuery(suggestion);
                         
-                        // Load saved filters for suggestion navigation too
-                        const saved = localStorage.getItem('enzonic_search_filters');
                         const params = new URLSearchParams();
                         params.set('q', suggestion);
-                        
-                        if (saved) {
-                          try {
-                            const filters = JSON.parse(saved);
-                            Object.entries(filters).forEach(([key, value]) => {
-                              if (value && value !== 'general' && value !== 'auto' && value !== 'anytime' && value !== '') {
-                                params.set(key, value.toString());
-                              }
-                            });
-                          } catch {
-                            // Ignore parsing errors
-                          }
-                        }
-                        
                         navigate(`/search?${params.toString()}`);
                       }}
                     >
                       <Search className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{suggestion}</span>
+                      <span>{suggestion}</span>
                     </button>
                   ))}
                 </div>
@@ -255,21 +200,21 @@ const Index = () => {
           </form>
         </div>
 
-        {/* Enhanced Search Buttons */}
+        {/* Clean Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mb-20">
           <Button
             variant="outline"
             size="lg"
-            className="px-8 py-4 rounded-xl shadow-lg hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary/5 to-green-500/5 border-2 border-primary/20 hover:border-primary/40 font-semibold"
+            className="px-8 py-4"
             onClick={() => navigate('/about')}
           >
             <Info className="h-4 w-4 mr-2" />
             About
           </Button>
           <Button
-            variant="secondary"
+            variant="default"
             size="lg"
-            className="px-8 py-4 rounded-xl shadow-lg hover:shadow-xl hover:shadow-green-500/20 transition-all duration-300 hover:scale-105 bg-gradient-to-r from-green-500/10 to-primary/10 border-2 border-green-500/20 hover:border-green-500/40 font-semibold hover:text-green-600"
+            className="px-8 py-4"
             onClick={() => {
               const randomQuery = getRandomSearch();
               const params = new URLSearchParams();
@@ -281,42 +226,31 @@ const Index = () => {
           </Button>
         </div>
 
-
-
         {/* Footer Message */}
-        <div className="mt-16 text-center">
+        <div className="text-center">
           <p className="text-sm text-muted-foreground">
             Enzonic Web Search • Available in English
           </p>
         </div>
-
-        {/* Simple scroll indicator */}
-        <div className="mt-12">
-          <div className="w-1 h-8 bg-primary/40 rounded-full mx-auto" />
-        </div>
       </main>
 
-      {/* Quick Access Section - Appears on Scroll */}
-      <section className={`w-full py-16 transition-all duration-500 transform relative z-10 ${
-        isScrolled ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-      }`}>
-        <div className="absolute inset-0 bg-background/95 backdrop-blur" />
-        
-        <div className="container mx-auto px-6 relative z-10">
+      {/* Quick Access Section */}
+      <section className="w-full py-16 bg-muted/20">
+        <div className="container mx-auto px-6">
           <div className="text-center mb-10">
-            <h3 className="text-2xl font-semibold text-foreground mb-2">Quick Access</h3>
+            <h3 className="text-2xl font-semibold mb-2">Quick Access</h3>
             <p className="text-muted-foreground">Explore Enzonic's services</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {quickActions.map((action, index) => (
-              <Link key={action.name} to={action.path} className="group">
-                <Card className="h-full hover:shadow-lg transition-all hover:scale-102 group cursor-pointer border border-border/60 hover:border-primary/40 bg-background/90 backdrop-blur-sm">
+            {quickActions.map((action) => (
+              <Link key={action.name} to={action.path}>
+                <Card className="h-full hover:shadow-lg transition-all hover:scale-105 cursor-pointer">
                   <CardContent className="p-6 text-center">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 mx-auto group-hover:scale-105 transition-transform shadow-md`}>
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 mx-auto`}>
                       <action.icon className="h-6 w-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-base mb-2 group-hover:text-primary transition-colors">{action.name}</h3>
+                    <h3 className="font-semibold text-base mb-2">{action.name}</h3>
                     <p className="text-sm text-muted-foreground">{action.description}</p>
                   </CardContent>
                 </Card>
