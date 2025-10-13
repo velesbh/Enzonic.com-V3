@@ -1,5 +1,7 @@
-// Use backend proxy to avoid CORS issues
-const API_BASE_URL = 'http://localhost:3001/api/search';
+import { env } from './env';
+
+// Use backend proxy through Vite in development or configured API_URL in production
+const API_BASE_URL = env.API_URL || '/api/search';
 
 export interface SearchResult {
   url: string;
