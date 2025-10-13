@@ -56,3 +56,6 @@ export async function authenticateUser(req, res, next) {
     return res.status(401).json({ error: 'Authentication failed' });
   }
 }
+
+// Export adminAuth as an alias for authenticateAdmin for backward compatibility
+export const adminAuth = authenticateAdmin;
