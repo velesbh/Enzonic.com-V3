@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemedClerkProvider } from "@/components/ThemedClerkProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
+import SearchResults from "./pages/SearchResults";
+import About from "./pages/About";
 import Admin from "./pages/Admin";
 import Support from "./pages/Support";
 import Translate from "./pages/Translate";
@@ -39,6 +41,8 @@ const App = () => (
               <div className="overflow-x-hidden">
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/search" element={<SearchResults />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/support" element={<Support />} />
                   <Route path="/translate" element={<Translate />} />

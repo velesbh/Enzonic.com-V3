@@ -5,6 +5,7 @@ import { initializeDatabase } from './database/config.js';
 import translationRoutes from './routes/translations.js';
 import chatRoutes from './routes/chats.js';
 import adminRoutes from './routes/admin.js';
+import searchRoutes from './routes/search.js';
 
 // Load environment variables
 dotenv.config({ path: '../.env' });
@@ -18,6 +19,7 @@ app.use(cors({
     'http://localhost:5173', 
     'http://localhost:3000', 
     'http://localhost:8080',
+    'http://localhost:8081',
     'https://dev.enzonic.online',
     'https://dev-api.enzonic.online'
   ], // Add your frontend URLs
@@ -30,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/translations', translationRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/search', searchRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

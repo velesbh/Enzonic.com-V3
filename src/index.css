@@ -223,15 +223,21 @@ All colors MUST be HSL.
   /* Enhanced welcome screen animations */
   @keyframes glow {
     0%, 100% {
-      box-shadow: 0 0 20px rgba(158, 64, 52, 0.3);
+      text-shadow: 
+        0 0 20px hsl(var(--primary) / 0.3),
+        0 0 40px hsl(var(--primary) / 0.2),
+        0 0 60px hsl(var(--primary) / 0.1);
     }
     50% {
-      box-shadow: 0 0 30px rgba(158, 64, 52, 0.5);
+      text-shadow: 
+        0 0 30px hsl(var(--primary) / 0.4),
+        0 0 60px hsl(var(--primary) / 0.3),
+        0 0 90px hsl(var(--primary) / 0.2);
     }
   }
 
   .animate-glow {
-    animation: glow 3s ease-in-out infinite;
+    animation: glow 4s ease-in-out infinite;
   }
 
   /* Gradient text support */
@@ -333,5 +339,77 @@ All colors MUST be HSL.
 
   .animate-wave {
     animation: wave 0.8s ease-in-out infinite;
+  }
+
+  /* Cool title animations */
+  .bg-size-200 {
+    background-size: 200% 200%;
+  }
+
+  .bg-pos-0 {
+    background-position: 0% 50%;
+  }
+
+  .bg-pos-100 {
+    background-position: 100% 50%;
+  }
+
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient-x {
+    animation: gradient-x 3s ease infinite;
+  }
+
+  /* Scale animation for hover effects */
+  .hover\:scale-102:hover {
+    transform: scale(1.02);
+  }
+
+  /* Line clamp utilities for text truncation */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .line-clamp-6 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+  }
+
+  .line-clamp-8 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 8;
+    line-clamp: 8;
   }
 }

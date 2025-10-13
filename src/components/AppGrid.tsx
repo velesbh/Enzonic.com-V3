@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Home, Languages, MessageCircle, Server, Brain, Tv } from "lucide-react";
+import { Home, Languages, MessageCircle, Server, Brain, Tv, Info } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const apps = [
-  { name: "Home", path: "/", icon: Home },
+  { name: "Search", path: "/", icon: Home },
+  { name: "About", path: "/about", icon: Info },
   { name: "Enzonic Emi", path: "/emi", icon: Brain },
   { name: "Chatbot", path: "/chatbot", icon: MessageCircle },
   { name: "Boxes", path: "/boxes", icon: Server },
