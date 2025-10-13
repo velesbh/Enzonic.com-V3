@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,10 +35,13 @@ import {
   Maximize2,
   Link as LinkIcon,
   User,
-  Grid3X3
+  Grid3X3,
+  Moon,
+  Sun
 } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import AppGrid from "@/components/AppGrid";
+import { useTheme } from "@/components/ThemeProvider";
 import { searchWeb, getAutocompleteSuggestions, searchWikipedia, SearchResult, SearchResponse } from "@/lib/searxngApi";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 
@@ -53,6 +57,7 @@ const SearchResults = () => {
   usePageMetadata();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const { theme, setTheme } = useTheme();
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
