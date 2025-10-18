@@ -797,4 +797,365 @@
     "content": "The quickest way to clarity is to tell someone else the idea.",
     "author": "Dmitri Kozlov"
   }
+,
+  {
+    "content": "Curiosity is the permission slip for new challenges.",
+    "author": "Asha Kapoor"
+  },
+  {
+    "content": "Design decisions age faster than code.",
+    "author": "Marco Vidal"
+  },
+  {
+    "content": "The easiest fix is often the one you overlooked.",
+    "author": "Lina Park"
+  },
+  {
+    "content": "Consistency builds reputation; speed only gets attention.",
+    "author": "Ibrahim Noor"
+  },
+  {
+    "content": "Ask the dumb question; it often has the smartest answer.",
+    "author": "Leah Stein"
+  },
+  {
+    "content": "Good defaults are an act of empathy.",
+    "author": "Rafael Silva"
+  },
+  {
+    "content": "A moment of calm clarifies a week of noise.",
+    "author": "Mina Alvarez"
+  },
+  {
+    "content": "Measure for meaning, not to appear busy.",
+    "author": "Hiro Tan"
+  },
+  {
+    "content": "Small teams with clear focus outpace large ones with fuzzy goals.",
+    "author": "Nora Finch"
+  },
+  {
+    "content": "The best user interfaces whisper, they don't shout.",
+    "author": "Jonah Park"
+  },
+  {
+    "content": "Documentation is kindness written down.",
+    "author": "Sofia Lin"
+  },
+  {
+    "content": "Ambition needs a rhythm, not just fuel.",
+    "author": "Owen Brooks"
+  },
+  {
+    "content": "If it's hard to explain, it's hard to use.",
+    "author": "Priya Desai"
+  },
+  {
+    "content": "Trust is a ledger of tiny, consistent deposits.",
+    "author": "Gus Rossi"
+  },
+  {
+    "content": "The right constraint turns noise into a signal.",
+    "author": "Zara Qureshi"
+  },
+  {
+    "content": "Sustainability starts with asking who benefits.",
+    "author": "Ken Yamamoto"
+  },
+  {
+    "content": "Learning is the shortest path to relevance.",
+    "author": "Ishaan Rao"
+  },
+  {
+    "content": "The most humane feature is the one that prevents harm.",
+    "author": "Laila Nassar"
+  },
+  {
+    "content": "The quality of your inputs predicts the quality of your outputs.",
+    "author": "Felix Meyer"
+  },
+  {
+    "content": "A good question keeps working after it's asked.",
+    "author": "Tess O'Neil"
+  },
+  {
+    "content": "Iterate with intent, not just momentum.",
+    "author": "Diego Ramos"
+  },
+  {
+    "content": "Design for repairability as if people will inherit your work.",
+    "author": "Ava Lin"
+  },
+  {
+    "content": "Simplicity is a feature, not a concession.",
+    "author": "Ruth Navarro"
+  },
+  {
+    "content": "Take the long view; short wins often mislead.",
+    "author": "Kenna Price"
+  },
+  {
+    "content": "Be more interested than interesting.",
+    "author": "Marco Silva"
+  },
+  {
+    "content": "A generous assumption opens more doors than a strict rule.",
+    "author": "Hana Delacroix"
+  },
+  {
+    "content": "Start where people already are, then lead them somewhere better.",
+    "author": "Noel Kim"
+  },
+  {
+    "content": "Every product has a default story; write a helpful one.",
+    "author": "Leila More"
+  },
+  {
+    "content": "The smallest clarity saves the most time.",
+    "author": "Omar Haddad"
+  },
+  {
+    "content": "Avoid features that ask users to change themselves.",
+    "author": "Evan Cole"
+  },
+  {
+    "content": "Good data governance is polite to future engineers.",
+    "author": "Iris Park"
+  },
+  {
+    "content": "A product that respects attention earns loyalty.",
+    "author": "Samir Ali"
+  },
+  {
+    "content": "Iterate until you can teach someone else your process.",
+    "author": "Nora Weiss"
+  },
+  {
+    "content": "The best roadmaps answer the question: why now?",
+    "author": "Maya Liu"
+  },
+  {
+    "content": "A clear constraint lets creativity roam.",
+    "author": "Jonas Meyer"
+  },
+  {
+    "content": "Measure the benefit, not just the output.",
+    "author": "Priya Gupta"
+  },
+  {
+    "content": "The simplest UX is the one that respects time.",
+    "author": "Hiro Tanaka"
+  },
+  {
+    "content": "Make the paths out of error obvious.",
+    "author": "Rina Shah"
+  },
+  {
+    "content": "The best features answer an unmet need you observe.",
+    "author": "Noah Becker"
+  },
+  {
+    "content": "A shared story aligns teams faster than a meeting.",
+    "author": "Lina Campos"
+  },
+  {
+    "content": "Keep the code kind; future you will thank you.",
+    "author": "Felix Hart"
+  },
+  {
+    "content": "The louder the pitch, the more you should verify.",
+    "author": "Sana Ahmed"
+  },
+  {
+    "content": "Be humble about certainty and generous with curiosity.",
+    "author": "Diego Alvarez"
+  },
+  {
+    "content": "Build the simplest thing that could possibly work, then refine.",
+    "author": "Ivy Chen"
+  },
+  {
+    "content": "Invest in clarity; it compounds across teams.",
+    "author": "Owen Brooks"
+  },
+  {
+    "content": "Take a tiny bet today to avoid a giant regret tomorrow.",
+    "author": "Mina Sol"
+  },
+  {
+    "content": "The best constraints are liberating.",
+    "author": "Rafael Nunez"
+  },
+  {
+    "content": "If it’s worth building, it’s worth documenting.",
+    "author": "Hana Park"
+  },
+  {
+    "content": "A clear API is a handshake between teams.",
+    "author": "Jon Kim"
+  },
+  {
+    "content": "Choose problems you can return to with fresh eyes.",
+    "author": "Sofia Marin"
+  },
+  {
+    "content": "Make error messages teach, not judge.",
+    "author": "Leah Cohen"
+  },
+  {
+    "content": "The best features solve a problem before it's described.",
+    "author": "Kenji Sato"
+  },
+  {
+    "content": "A team that reflects its users builds better products.",
+    "author": "Maya Ben"
+  },
+  {
+    "content": "Design for forgetfulness; people will not remember everything.",
+    "author": "Paul Jensen"
+  },
+  {
+    "content": "Reduce friction at the moment of decision.",
+    "author": "Ishaan Verma"
+  },
+  {
+    "content": "The quiet work of maintenance is an act of stewardship.",
+    "author": "Ruth Adler"
+  },
+  {
+    "content": "Ask early, iterate often, ship kind.",
+    "author": "Jonas Berg"
+  },
+  {
+    "content": "Simplicity is the hardest refinement.",
+    "author": "Leila Haddad"
+  },
+  {
+    "content": "Build the thing that makes tomorrow less accidental.",
+    "author": "Nina Rossi"
+  },
+  {
+    "content": "Focus your curiosity where users show you gaps.",
+    "author": "Ethan Hale"
+  },
+  {
+    "content": "The best defaults respect both novice and expert needs.",
+    "author": "Mira Patel"
+  },
+  {
+    "content": "Be explicit about your assumptions; they'll be questioned later.",
+    "author": "Ken Watts"
+  },
+  {
+    "content": "Whitespace isn't emptiness; it's a place to breathe.",
+    "author": "Iris Cole"
+  },
+  {
+    "content": "The heart of product is asking: who does this serve?",
+    "author": "Evan Brooks"
+  },
+  {
+    "content": "Invest in onboarding like you're buying years of retention.",
+    "author": "Sana Ortiz"
+  },
+  {
+    "content": "If a feature doesn't help someone, it's probably noise.",
+    "author": "Dmitri Orlov"
+  },
+  {
+    "content": "A clear naming convention is a love letter to maintainers.",
+    "author": "Felix Bauer"
+  },
+  {
+    "content": "Do the smallest usable thing and ship it.",
+    "author": "Rosa Gutierrez"
+  },
+  {
+    "content": "The best learning path is guided by results.",
+    "author": "Noah Becker"
+  },
+  {
+    "content": "Design is not decoration; it's guidance.",
+    "author": "Lena Vogel"
+  },
+  {
+    "content": "The right question saves a dozen hypotheses.",
+    "author": "Ishaan Patel"
+  },
+  {
+    "content": "A product that apologizes less is a product that explains more.",
+    "author": "Mina Park"
+  },
+  {
+    "content": "Document decisions, not just features.",
+    "author": "Carlos Vega"
+  },
+  {
+    "content": "The best features are obvious in use and invisible in design.",
+    "author": "Nora Flynn"
+  },
+  {
+    "content": "If you want predictable outputs, create predictable processes.",
+    "author": "Gabe Morris"
+  },
+  {
+    "content": "Invest time to reduce time later.",
+    "author": "Leah Nguyen"
+  },
+  {
+    "content": "Build for the person who will inherit your work next.",
+    "author": "Jon Kim"
+  },
+  {
+    "content": "A kind interface anticipates and forgives mistakes.",
+    "author": "Mira Solis"
+  },
+  {
+    "content": "Sustainability is the compound effect of good defaults.",
+    "author": "Rashida Khan"
+  },
+  {
+    "content": "Be curious about what people avoid doing in your product.",
+    "author": "Zoe Park"
+  },
+  {
+    "content": "The most generous features reduce cognitive load.",
+    "author": "Noel Grant"
+  },
+  {
+    "content": "A reliable product embarrasses itself less often.",
+    "author": "Kenji Ito"
+  },
+  {
+    "content": "The clearest path to impact is removing steps.",
+    "author": "Priya Nair"
+  },
+  {
+    "content": "Take a break; your next idea may be a rest away.",
+    "author": "Maya Ben"
+  },
+  {
+    "content": "The most meaningful feedback is what users do, not what they say.",
+    "author": "Jonah Reed"
+  },
+  {
+    "content": "Design for the edge cases that expose real assumptions.",
+    "author": "Hannah Cho"
+  },
+  {
+    "content": "A small, clear success is better than an ambitious, vague one.",
+    "author": "Ethan Moore"
+  },
+  {
+    "content": "Measure progress by learning, not only by delivery.",
+    "author": "Priyanka Sharma"
+  },
+  {
+    "content": "The best features age like well-told stories.",
+    "author": "Noor Sheikh"
+  },
+  {
+    "content": "Let evidence, not ego, guide the next change.",
+    "author": "Felix O'Neill"
+  }
 ]
