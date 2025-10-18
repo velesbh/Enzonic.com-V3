@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import SearXNGAnswers from "@/components/SearXNGAnswers";
+import InstantAnswers from "@/components/InstantAnswers";
+import OpenStreetMap from "@/components/OpenStreetMap";
+import MediaCarousel from "@/components/MediaCarousel";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +46,7 @@ import {
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import AppGrid from "@/components/AppGrid";
 import { useTheme } from "@/components/ThemeProvider";
+import { useResolvedTheme } from "@/hooks/use-resolved-theme";
 import { searchWeb, getAutocompleteSuggestions, searchWikipedia, SearchResult, SearchResponse } from "@/lib/searxngApi";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 
@@ -58,14 +63,17 @@ const SearchResults = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const { theme, setTheme } = useTheme();
+  const resolvedTheme = useResolvedTheme();
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]); // Autocomplete suggestions
+  const [didYouMeanSuggestions, setDidYouMeanSuggestions] = useState<string[]>([]); // "Did you mean" suggestions
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SearchResult | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [wikipediaResults, setWikipediaResults] = useState<SearchResponse | null>(null);
+  const [mediaResults, setMediaResults] = useState<SearchResult[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showAppGrid, setShowAppGrid] = useState(false);
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
@@ -130,15 +138,53 @@ const SearchResults = () => {
           pageno: page,
           safesearch: filters.safesearch as 0 | 1 | 2,
           language: filters.language === 'auto' ? undefined : filters.language,
-          categories: filters.category === 'general' ? undefined : filters.category,
+          categories: filters.category,
           time_range: filters.timeRange === 'anytime' ? undefined : filters.timeRange as 'day' | 'week' | 'month' | 'year',
           engines: filters.engines || undefined
         })
       ];
 
-      // Only search Wikipedia on page 1
+      // Only search Wikipedia and media on page 1
       if (page === 1) {
         searchPromises.push(searchWikipedia(query, filters.language === 'auto' ? 'en' : filters.language));
+        
+        // Fetch images for carousel (only if general category)
+        if (filters.category === 'general') {
+          searchPromises.push(
+            searchWeb({
+              q: query,
+              pageno: 1,
+              safesearch: filters.safesearch as 0 | 1 | 2,
+              language: filters.language === 'auto' ? undefined : filters.language,
+              categories: 'images',
+              time_range: filters.timeRange === 'anytime' ? undefined : filters.timeRange as 'day' | 'week' | 'month' | 'year',
+            })
+          );
+          
+          // Fetch videos for carousel
+          searchPromises.push(
+            searchWeb({
+              q: query,
+              pageno: 1,
+              safesearch: filters.safesearch as 0 | 1 | 2,
+              language: filters.language === 'auto' ? undefined : filters.language,
+              categories: 'videos',
+              time_range: filters.timeRange === 'anytime' ? undefined : filters.timeRange as 'day' | 'week' | 'month' | 'year',
+            })
+          );
+        }
+        
+        // Also fetch "Did you mean" suggestions on page 1
+        getAutocompleteSuggestions(query).then(autoSuggestions => {
+          // Filter out the exact query and limit to 5 suggestions
+          const filteredSuggestions = autoSuggestions
+            .filter(s => s.toLowerCase() !== query.toLowerCase())
+            .slice(0, 5);
+          setDidYouMeanSuggestions(filteredSuggestions);
+        }).catch(err => {
+          console.error('Failed to fetch did-you-mean suggestions:', err);
+          setDidYouMeanSuggestions([]);
+        });
       }
 
       const results = await Promise.allSettled(searchPromises);
@@ -149,18 +195,38 @@ const SearchResults = () => {
         
         // Estimate total pages based on number of results (assuming ~10 results per page)
         const resultsPerPage = 10;
-        const estimatedTotalPages = Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10); // Cap at 10 pages
+        const estimatedTotalPages = Math.max(1, Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10)); // At least 1 page, cap at 10 pages
         setTotalPages(estimatedTotalPages);
       } else {
         throw results[0].reason;
       }
       
-      // Handle Wikipedia results only if we searched for them (page 1)
-      if (page === 1 && results[1]) {
-        if (results[1].status === 'fulfilled' && results[1].value) {
+      // Handle Wikipedia, images, and videos results only if we searched for them (page 1)
+      if (page === 1) {
+        // Wikipedia results (index 1)
+        if (results[1] && results[1].status === 'fulfilled' && results[1].value) {
           setWikipediaResults(results[1].value);
         } else {
           setWikipediaResults(null);
+        }
+        
+        // Combine images and videos for media carousel (only if general category)
+        if (filters.category === 'general') {
+          const mediaItems: SearchResult[] = [];
+          
+          // Images (index 2) - Take up to 12 images
+          if (results[2] && results[2].status === 'fulfilled' && results[2].value) {
+            mediaItems.push(...results[2].value.results.slice(0, 12));
+          }
+          
+          // Videos (index 3) - Take up to 12 videos
+          if (results[3] && results[3].status === 'fulfilled' && results[3].value) {
+            mediaItems.push(...results[3].value.results.slice(0, 12));
+          }
+          
+          setMediaResults(mediaItems);
+        } else {
+          setMediaResults([]);
         }
       }
       
@@ -180,18 +246,19 @@ const SearchResults = () => {
         // Get history suggestions first
         const historySuggestions = getHistorySuggestions(value);
         
-        // Get API suggestions if query is long enough
-        const apiSuggestions = value.length >= 2 ? await getAutocompleteSuggestions(value) : [];
+        // Get API suggestions if query is long enough (using Google autocomplete)
+        const apiSuggestions = value.length >= 2 ? await getAutocompleteSuggestions(value, 'google') : [];
         
         // Combine history and API suggestions, prioritizing history
         const combinedSuggestions = [
           ...historySuggestions,
           ...apiSuggestions.filter(s => !historySuggestions.includes(s))
-        ].slice(0, 8);
+        ].slice(0, 8); // Show up to 8 suggestions
         
         setSuggestions(combinedSuggestions);
         setShowSuggestions(combinedSuggestions.length > 0);
       } catch (err) {
+        // Fallback to just history suggestions if API fails
         const historySuggestions = getHistorySuggestions(value);
         setSuggestions(historySuggestions);
         setShowSuggestions(historySuggestions.length > 0);
@@ -202,7 +269,7 @@ const SearchResults = () => {
     }
   };
 
-  const updateFiltersAndSearch = (newFilters: Partial<SearchFilters>) => {
+  const updateFiltersAndSearch = async (newFilters: Partial<SearchFilters>) => {
     const updatedFilters = { ...filters, ...newFilters };
     setFilters(updatedFilters);
     
@@ -211,6 +278,7 @@ const SearchResults = () => {
     
     // Update URL params
     const params = new URLSearchParams(searchParams);
+    params.set('page', '1'); // Reset to page 1 when filters change
     Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value && value !== 'general' && value !== 'auto' && value !== 'anytime' && value !== '') {
         params.set(key, value.toString());
@@ -222,8 +290,154 @@ const SearchResults = () => {
     if (searchQuery.trim()) {
       params.set('q', searchQuery.trim());
       setSearchParams(params);
-      performSearch(searchQuery.trim());
+      
+      // Perform search immediately with updated filters
+      setLoading(true);
+      setError(null);
+      setCurrentPage(1);
+
+      try {
+        const searchPromises = [
+          searchWeb({
+            q: searchQuery.trim(),
+            pageno: 1,
+            safesearch: updatedFilters.safesearch as 0 | 1 | 2,
+            language: updatedFilters.language === 'auto' ? undefined : updatedFilters.language,
+            categories: updatedFilters.category,
+            time_range: updatedFilters.timeRange === 'anytime' ? undefined : updatedFilters.timeRange as 'day' | 'week' | 'month' | 'year',
+            engines: updatedFilters.engines || undefined
+          }),
+          searchWikipedia(searchQuery.trim(), updatedFilters.language === 'auto' ? 'en' : updatedFilters.language)
+        ];
+
+        // Add media searches if general category
+        if (updatedFilters.category === 'general') {
+          searchPromises.push(
+            searchWeb({
+              q: searchQuery.trim(),
+              pageno: 1,
+              safesearch: updatedFilters.safesearch as 0 | 1 | 2,
+              language: updatedFilters.language === 'auto' ? undefined : updatedFilters.language,
+              categories: 'images',
+              time_range: updatedFilters.timeRange === 'anytime' ? undefined : updatedFilters.timeRange as 'day' | 'week' | 'month' | 'year',
+            })
+          );
+          
+          searchPromises.push(
+            searchWeb({
+              q: searchQuery.trim(),
+              pageno: 1,
+              safesearch: updatedFilters.safesearch as 0 | 1 | 2,
+              language: updatedFilters.language === 'auto' ? undefined : updatedFilters.language,
+              categories: 'videos',
+              time_range: updatedFilters.timeRange === 'anytime' ? undefined : updatedFilters.timeRange as 'day' | 'week' | 'month' | 'year',
+            })
+          );
+        }
+
+        const results = await Promise.allSettled(searchPromises);
+        
+        if (results[0].status === 'fulfilled') {
+          const searchData = results[0].value;
+          setResults(searchData);
+          
+          const resultsPerPage = 10;
+          const estimatedTotalPages = Math.max(1, Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10));
+          setTotalPages(estimatedTotalPages);
+        } else {
+          throw results[0].reason;
+        }
+        
+        if (results[1].status === 'fulfilled' && results[1].value) {
+          setWikipediaResults(results[1].value);
+        } else {
+          setWikipediaResults(null);
+        }
+        
+        // Handle media results for general category
+        if (updatedFilters.category === 'general') {
+          const mediaItems: SearchResult[] = [];
+          
+          if (results[2] && results[2].status === 'fulfilled' && results[2].value) {
+            mediaItems.push(...results[2].value.results.slice(0, 12));
+          }
+          
+          if (results[3] && results[3].status === 'fulfilled' && results[3].value) {
+            mediaItems.push(...results[3].value.results.slice(0, 12));
+          }
+          
+          setMediaResults(mediaItems);
+        } else {
+          setMediaResults([]);
+        }
+        
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred while searching');
+      } finally {
+        setLoading(false);
+      }
     }
+  };
+
+  // Detect language from search query text
+  const detectLanguage = (text: string): string => {
+    // Character ranges for different scripts
+    const patterns = {
+      // Arabic script
+      ar: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/,
+      // Chinese characters (Simplified & Traditional)
+      zh: /[\u4E00-\u9FFF\u3400-\u4DBF]/,
+      // Japanese (Hiragana, Katakana, Kanji)
+      ja: /[\u3040-\u309F\u30A0-\u30FF]/,
+      // Korean (Hangul)
+      ko: /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/,
+      // Russian/Cyrillic
+      ru: /[\u0400-\u04FF]/,
+      // Hindi/Devanagari
+      hi: /[\u0900-\u097F]/,
+      // Greek
+      el: /[\u0370-\u03FF]/,
+      // Hebrew
+      he: /[\u0590-\u05FF]/,
+    };
+
+    // Check for non-Latin scripts first (more distinctive)
+    for (const [lang, pattern] of Object.entries(patterns)) {
+      if (pattern.test(text)) {
+        return lang;
+      }
+    }
+
+    // For Latin scripts, check for distinctive patterns
+    const lowerText = text.toLowerCase();
+    
+    // Spanish: ñ, ¿, ¡, or common words
+    if (/[ñáéíóúü¿¡]/.test(lowerText) || /\b(el|la|de|que|y|es|en|un|para|por|como|con|no|una|su)\b/.test(lowerText)) {
+      return 'es';
+    }
+    
+    // French: common accents and words
+    if (/[àâæçèéêëîïôùûü]/.test(lowerText) || /\b(le|la|les|de|un|une|est|et|dans|pour|qui|avec|ce|il|au)\b/.test(lowerText)) {
+      return 'fr';
+    }
+    
+    // German: ä, ö, ü, ß or common words
+    if (/[äöüß]/.test(lowerText) || /\b(der|die|das|und|in|von|zu|den|mit|ist|im|für|auf|des|dem)\b/.test(lowerText)) {
+      return 'de';
+    }
+    
+    // Italian: common words
+    if (/\b(il|la|di|e|da|in|un|per|con|non|una|che|come|più|del|dei)\b/.test(lowerText)) {
+      return 'it';
+    }
+    
+    // Portuguese: ã, õ, ç or common words
+    if (/[ãõç]/.test(lowerText) || /\b(o|a|os|as|de|da|do|em|para|com|que|não|um|uma|por|se|como)\b/.test(lowerText)) {
+      return 'pt';
+    }
+
+    // Default to auto (let the search engine decide)
+    return 'auto';
   };
 
   useEffect(() => {
@@ -240,12 +454,24 @@ const SearchResults = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowSuggestions(false);
+      
+      // Detect language from search query
+      const detectedLang = detectLanguage(searchQuery.trim());
+      
+      // Update filters with detected language if it's not auto
+      let updatedFilters = { ...filters };
+      if (detectedLang !== 'auto' && filters.language === 'auto') {
+        updatedFilters.language = detectedLang;
+        setFilters(updatedFilters);
+        localStorage.setItem('enzonic_search_filters', JSON.stringify(updatedFilters));
+      }
+      
       const params = new URLSearchParams();
       params.set('q', searchQuery.trim());
       params.set('page', '1'); // Reset to page 1 for new searches
       
       // Include current filters in URL
-      Object.entries(filters).forEach(([key, value]) => {
+      Object.entries(updatedFilters).forEach(([key, value]) => {
         if (value && value !== 'general' && value !== 'auto' && value !== 'anytime' && value !== '') {
           params.set(key, value.toString());
         }
@@ -283,11 +509,12 @@ const SearchResults = () => {
     }
   };
 
-  // Get favicon URL for website
+  // Get favicon URL for website - using DuckDuckGo's service (more reliable than Google)
   const getFaviconUrl = (url: string) => {
     try {
       const urlObj = new URL(url);
-      return `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=16`;
+      // DuckDuckGo's favicon service is more reliable and doesn't require API keys
+      return `https://icons.duckduckgo.com/ip3/${urlObj.hostname}.ico`;
     } catch {
       return null;
     }
@@ -419,6 +646,25 @@ const SearchResults = () => {
 
             {/* Right side buttons */}
             <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Theme Toggle Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (theme === 'light') setTheme('dark');
+                  else if (theme === 'dark') setTheme('system');
+                  else setTheme('light');
+                }}
+                className="w-9 h-9 p-0 hover:bg-primary/10"
+                title={`Current theme: ${theme}${theme === 'system' ? ` (${resolvedTheme})` : ''}`}
+              >
+                {resolvedTheme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+
               {/* AppGrid Button */}
               <Dialog open={showAppGrid} onOpenChange={setShowAppGrid}>
                 <DialogTrigger asChild>
@@ -488,6 +734,56 @@ const SearchResults = () => {
                 </TabsList>
               </Tabs>
 
+              {/* Filter Controls */}
+              <div className="flex items-center gap-2">
+                {/* Language Filter */}
+                <Select value={filters.language} onValueChange={(value) => updateFiltersAndSearch({ language: value })}>
+                  <SelectTrigger className="w-[140px] h-9 text-sm">
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Any Language</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
+                    <SelectItem value="de">German</SelectItem>
+                    <SelectItem value="it">Italian</SelectItem>
+                    <SelectItem value="pt">Portuguese</SelectItem>
+                    <SelectItem value="ru">Russian</SelectItem>
+                    <SelectItem value="ja">Japanese</SelectItem>
+                    <SelectItem value="ko">Korean</SelectItem>
+                    <SelectItem value="zh">Chinese</SelectItem>
+                    <SelectItem value="ar">Arabic</SelectItem>
+                    <SelectItem value="hi">Hindi</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Time Range Filter */}
+                <Select value={filters.timeRange} onValueChange={(value) => updateFiltersAndSearch({ timeRange: value })}>
+                  <SelectTrigger className="w-[130px] h-9 text-sm">
+                    <SelectValue placeholder="Any time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="anytime">Any time</SelectItem>
+                    <SelectItem value="day">Past 24 hours</SelectItem>
+                    <SelectItem value="week">Past week</SelectItem>
+                    <SelectItem value="month">Past month</SelectItem>
+                    <SelectItem value="year">Past year</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Safe Search Filter */}
+                <Select value={filters.safesearch.toString()} onValueChange={(value) => updateFiltersAndSearch({ safesearch: parseInt(value) })}>
+                  <SelectTrigger className="w-[120px] h-9 text-sm">
+                    <SelectValue placeholder="Safe Search" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Off</SelectItem>
+                    <SelectItem value="1">Moderate</SelectItem>
+                    <SelectItem value="2">Strict</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
             </div>
           </div>
@@ -508,8 +804,6 @@ const SearchResults = () => {
                 </p>
               </div>
             )}
-
-
 
         {/* Error State */}
         {error && (
@@ -540,12 +834,12 @@ const SearchResults = () => {
           <div className="space-y-6">
 
 
-            {/* Query Suggestions */}
-            {results.suggestions && results.suggestions.length > 0 && (
+            {/* Query Suggestions (Did you mean) */}
+            {didYouMeanSuggestions.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-muted-foreground mb-2">Did you mean:</h3>
                 <div className="flex flex-wrap gap-2">
-                  {results.suggestions.slice(0, 5).map((suggestion, index) => (
+                  {didYouMeanSuggestions.map((suggestion, index) => (
                     <Button
                       key={index}
                       variant="outline"
@@ -560,8 +854,22 @@ const SearchResults = () => {
               </div>
             )}
 
+            {/* Media Carousel - Show images and videos at the top for general category */}
+            {filters.category === 'general' && mediaResults.length > 0 && (
+              <MediaCarousel 
+                results={mediaResults} 
+                onImageClick={(result) => {
+                  setSelectedImage(result);
+                  setShowImageModal(true);
+                }}
+              />
+            )}
+
             {/* Search Results - Different layouts based on category */}
-            {filters.category === 'images' ? (
+            {filters.category === 'map' ? (
+              // Map View
+              <OpenStreetMap query={searchQuery} results={results.results} />
+            ) : filters.category === 'images' ? (
               // Image Grid Layout
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {results.results.map((result, index) => (
@@ -674,18 +982,20 @@ const SearchResults = () => {
                         {/* URL with Favicon */}
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           {getFaviconUrl(result.url) ? (
-                            <img
-                              src={getFaviconUrl(result.url)!}
-                              alt=""
-                              className="h-3 w-3 rounded-sm"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                          ) : null}
-                          <Globe className="h-3 w-3 hidden" />
+                            <>
+                              <img
+                                src={getFaviconUrl(result.url)!}
+                                alt=""
+                                className="h-3 w-3 rounded-sm"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <Globe className="h-3 w-3" />
+                            </>
+                          ) : (
+                            <Globe className="h-3 w-3" />
+                          )}
                           <span className="truncate">{formatUrl(result.url)}</span>
                         </div>
 
@@ -737,63 +1047,96 @@ const SearchResults = () => {
               </div>
             )}
 
-            {/* Pagination */}
-            {results && results.results.length > 0 && totalPages > 1 && (
-              <div className="flex justify-center mt-8 mb-6">
-                <div className="flex items-center gap-2">
-                  {/* Previous Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === 1 || loading}
-                    onClick={() => performSearch(searchQuery, currentPage - 1)}
-                    className="flex items-center gap-2"
-                  >
-                    ← Previous
-                  </Button>
+            {/* Pagination - Bottom of Results */}
+            {results && results.results.length > 0 && (
+              <Card className="mt-8 mb-6 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    {/* Page Counter */}
+                    <div className="text-sm text-muted-foreground">
+                      Page <span className="font-semibold text-foreground">{currentPage}</span> of <span className="font-semibold text-foreground">{Math.max(totalPages, 1)}</span>
+                    </div>
 
-                  {/* Page Numbers */}
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
-                      const pageNum = i + 1;
-                      return (
-                        <Button
-                          key={pageNum}
-                          variant={pageNum === currentPage ? "default" : "outline"}
-                          size="sm"
-                          disabled={loading}
-                          onClick={() => performSearch(searchQuery, pageNum)}
-                          className="w-9 h-9 p-0"
-                        >
-                          {pageNum}
-                        </Button>
-                      );
-                    })}
+                    {/* Pagination Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Previous Button */}
+                      <Button
+                        variant="outline"
+                        size="default"
+                        disabled={currentPage === 1 || loading}
+                        onClick={() => performSearch(searchQuery, currentPage - 1)}
+                        className="flex items-center gap-2"
+                      >
+                        ← Previous
+                      </Button>
+
+                      {/* Page Numbers */}
+                      <div className="hidden md:flex items-center gap-1">
+                        {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+                          const pageNum = i + 1;
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={pageNum === currentPage ? "default" : "outline"}
+                              size="default"
+                              disabled={loading}
+                              onClick={() => performSearch(searchQuery, pageNum)}
+                              className="w-10 h-10 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Next Button */}
+                      <Button
+                        variant="outline"
+                        size="default"
+                        disabled={currentPage === totalPages || loading}
+                        onClick={() => performSearch(searchQuery, currentPage + 1)}
+                        className="flex items-center gap-2"
+                      >
+                        Next →
+                      </Button>
+                    </div>
+
+                    {/* Results Count */}
+                    <div className="text-sm text-muted-foreground">
+                      Showing <span className="font-semibold text-foreground">{results.results.length}</span> results
+                    </div>
                   </div>
-
-                  {/* Next Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={currentPage === totalPages || loading}
-                    onClick={() => performSearch(searchQuery, currentPage + 1)}
-                    className="flex items-center gap-2"
-                  >
-                    Next →
-                  </Button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )}
           </div>
         )}
 
         </div>
 
-        {/* Right Sidebar - Wikipedia Info */}
-        {results && !loading && wikipediaResults && wikipediaResults.results.length > 0 && filters.category === 'general' && (
+        {/* Right Sidebar - SearXNG Answers & Wikipedia Info */}
+        {results && !loading && (
+          (results.answers?.length > 0 || results.infoboxes?.length > 0 || (wikipediaResults && wikipediaResults.results.length > 0)) && 
+          filters.category === 'general'
+        ) && (
           <div className="w-80 flex-shrink-0 hidden lg:block">
-            <div className="sticky top-24">
-              {wikipediaResults.results.slice(0, 1).map((wikiResult, index) => (
+            <div className="sticky top-24 space-y-4">
+              
+              {/* SearXNG Instant Answers - Sidebar Version */}
+              {(results.answers?.length > 0 || results.infoboxes?.length > 0) && (
+                <SearXNGAnswers 
+                  answers={results.answers || []} 
+                  infoboxes={results.infoboxes || []}
+                />
+              )}
+
+              {/* Custom Instant Answers (Calculator, Time, Translate, Converters) */}
+              {searchQuery && (
+                <InstantAnswers query={searchQuery} language={filters.language} />
+              )}
+
+              {/* Wikipedia Info Box */}
+              {wikipediaResults && wikipediaResults.results.length > 0 && wikipediaResults.results.slice(0, 1).map((wikiResult, index) => (
                 <Card key={index} className="border border-primary/20 bg-background/95 backdrop-blur">
                   <CardContent className="p-4">
                     <div className="space-y-4">

@@ -5,11 +5,12 @@ import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Mic, Camera, Server, Languages, Brain, Tv, Info, HelpCircle, Globe } from "lucide-react";
+import { Search, Server, Languages, Brain, Tv, Info, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 import { useScroll } from "@/hooks/use-scroll";
 import { getAutocompleteSuggestions } from "@/lib/searxngApi";
+import quotesData from "../../quotes.json";
 
 const Index = () => {
   usePageMetadata();
@@ -17,6 +18,8 @@ const Index = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [quote, setQuote] = useState<{content: string; author: string} | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const navigate = useNavigate();
 
   // Truly random search terms - no placeholders, real interesting stuff
@@ -46,6 +49,34 @@ const Index = () => {
     return randomSearchTerms[randomIndex];
   };
 
+  // Fetch random quote on mount
+  useEffect(() => {
+    fetchRandomQuote();
+  }, []);
+
+  const fetchRandomQuote = () => {
+    setQuoteLoading(true);
+    try {
+      // Get a random quote from local JSON
+      const randomIndex = Math.floor(Math.random() * quotesData.length);
+      const randomQuote = quotesData[randomIndex];
+      
+      setQuote({
+        content: randomQuote.content,
+        author: randomQuote.author
+      });
+    } catch (error) {
+      console.error('Failed to load quote:', error);
+      // Fallback quote
+      setQuote({
+        content: "The only way to do great work is to love what you do.",
+        author: "Steve Jobs"
+      });
+    } finally {
+      setQuoteLoading(false);
+    }
+  };
+
   // Handle scroll to show/hide quick access
   useEffect(() => {
     const handleScroll = () => {
@@ -62,9 +93,11 @@ const Index = () => {
     const fetchSuggestions = async () => {
       if (searchQuery.length > 2) {
         try {
-          const results = await getAutocompleteSuggestions(searchQuery);
+          // Use Google autocomplete for consistent results
+          const results = await getAutocompleteSuggestions(searchQuery, 'google');
           setSuggestions(results.slice(0, 8)); // Limit to 8 suggestions
         } catch (error) {
+          console.error('Autocomplete error:', error);
           setSuggestions([]);
         }
       } else {
@@ -72,33 +105,90 @@ const Index = () => {
       }
     };
 
-    const timeoutId = setTimeout(fetchSuggestions, 300);
+    const timeoutId = setTimeout(fetchSuggestions, 300); // Debounce 300ms
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Load saved filters and include them in the URL
+      // Detect language from search query
+      const detectedLang = detectLanguage(searchQuery.trim());
+      
+      // Load saved filters
       const saved = localStorage.getItem('enzonic_search_filters');
       const params = new URLSearchParams();
       params.set('q', searchQuery.trim());
       
+      let filters: any = {};
       if (saved) {
         try {
-          const filters = JSON.parse(saved);
-          Object.entries(filters).forEach(([key, value]) => {
-            if (value && value !== 'general' && value !== 'auto' && value !== 'anytime' && value !== '') {
-              params.set(key, value.toString());
-            }
-          });
+          filters = JSON.parse(saved);
         } catch {
           // Ignore parsing errors
         }
       }
       
+      // Update language filter if detected and current is auto
+      if (detectedLang !== 'auto' && (!filters.language || filters.language === 'auto')) {
+        filters.language = detectedLang;
+        localStorage.setItem('enzonic_search_filters', JSON.stringify(filters));
+      }
+      
+      // Add filters to URL params
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== 'general' && value !== 'auto' && value !== 'anytime' && value !== '') {
+          params.set(key, value.toString());
+        }
+      });
+      
       navigate(`/search?${params.toString()}`);
     }
+  };
+
+  // Detect language from search query text
+  const detectLanguage = (text: string): string => {
+    // Character ranges for different scripts
+    const patterns = {
+      ar: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/,
+      zh: /[\u4E00-\u9FFF\u3400-\u4DBF]/,
+      ja: /[\u3040-\u309F\u30A0-\u30FF]/,
+      ko: /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/,
+      ru: /[\u0400-\u04FF]/,
+      hi: /[\u0900-\u097F]/,
+    };
+
+    // Check for non-Latin scripts
+    for (const [lang, pattern] of Object.entries(patterns)) {
+      if (pattern.test(text)) {
+        return lang;
+      }
+    }
+
+    // For Latin scripts, check for distinctive patterns
+    const lowerText = text.toLowerCase();
+    
+    if (/[ñáéíóúü¿¡]/.test(lowerText) || /\b(el|la|de|que|y|es|en|un|para|por|como|con|no|una|su)\b/.test(lowerText)) {
+      return 'es';
+    }
+    
+    if (/[àâæçèéêëîïôùûü]/.test(lowerText) || /\b(le|la|les|de|un|une|est|et|dans|pour|qui|avec|ce|il|au)\b/.test(lowerText)) {
+      return 'fr';
+    }
+    
+    if (/[äöüß]/.test(lowerText) || /\b(der|die|das|und|in|von|zu|den|mit|ist|im|für|auf|des|dem)\b/.test(lowerText)) {
+      return 'de';
+    }
+    
+    if (/\b(il|la|di|e|da|in|un|per|con|non|una|che|come|più|del|dei)\b/.test(lowerText)) {
+      return 'it';
+    }
+    
+    if (/[ãõç]/.test(lowerText) || /\b(o|a|os|as|de|da|do|em|para|com|que|não|um|uma|por|se|como)\b/.test(lowerText)) {
+      return 'pt';
+    }
+
+    return 'auto';
   };
 
   const quickActions = [
@@ -133,9 +223,29 @@ const Index = () => {
             </span>
           </h1>
           
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover the Web with Innovation & Intelligence
-          </p>
+          {/* Random Quote or Loading State */}
+          {!searchQuery && (
+            <div className="max-w-2xl mx-auto animate-fade-in">
+              {quoteLoading ? (
+                <p className="text-lg sm:text-xl text-muted-foreground">
+                  Loading inspiration...
+                </p>
+              ) : quote ? (
+                <blockquote className="text-lg sm:text-xl text-muted-foreground">
+                  <p className="italic">
+                    "{quote.content}"
+                  </p>
+                  <footer className="text-base text-muted-foreground/80 mt-2">
+                    — {quote.author}
+                  </footer>
+                </blockquote>
+              ) : (
+                <p className="text-lg sm:text-xl text-muted-foreground">
+                  Discover the Web with Innovation & Intelligence
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Clean Search Bar */}
@@ -146,31 +256,13 @@ const Index = () => {
                 <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
                   type="text"
-                  placeholder="Search the infinite web..."
+                  placeholder="Search the world wide web..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  className="pl-16 pr-24 py-6 text-lg rounded-full border-0 bg-transparent focus:ring-2 focus:ring-primary/40"
+                  className="pl-16 pr-6 py-6 text-lg rounded-full border-0 bg-transparent focus:ring-2 focus:ring-primary/40"
                 />
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="rounded-full w-9 h-9 p-0 hover:bg-primary/10"
-                  >
-                    <Mic className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="rounded-full w-9 h-9 p-0 hover:bg-primary/10"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
-                </div>
               </div>
 
               {/* Autocomplete Suggestions */}

@@ -32,6 +32,7 @@ const Terms = () => {
                   Enzonic LLC provides innovative, user-centric, and eco-friendly solutions, including:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li><strong>Enzonic Search:</strong> Privacy-focused web search powered by SearXNG, featuring intelligent autocomplete, Wikipedia integration, search history, and category-based filtering (images, videos, news, etc.)</li>
                   <li><strong>AI Services:</strong> Chatbots, language translation, content generation, and AI-powered tools</li>
                   <li><strong>Emi Discord Bot:</strong> AI-powered Discord bot with memory and intelligent conversation capabilities</li>
                   <li><strong>Virtual Browser Sessions (Boxes):</strong> Secure, isolated virtual machine browser sessions powered by Kasm</li>
@@ -161,7 +162,35 @@ const Terms = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">10. Modifications and Termination</h2>
+                <h2 className="text-2xl font-semibold mb-4">10. Enzonic Search Service</h2>
+                <p className="text-muted-foreground mb-4">
+                  Our search service aggregates results from multiple search engines via SearXNG and provides instant answers. You acknowledge:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li>Search results are sourced from third-party search engines and may include Wikipedia content</li>
+                  <li>We act as an intermediary and proxy requests through our backend to protect your privacy</li>
+                  <li>Mock fallback results may be provided if search engines are temporarily unavailable</li>
+                  <li>Search history is stored locally in your browser (localStorage) and can be cleared anytime</li>
+                  <li>Search queries are not stored on our servers except for anonymized analytics</li>
+                  <li>We exclude Wikipedia from general search results to provide a dedicated Wikipedia sidebar</li>
+                  <li>Autocomplete suggestions are provided by third-party services (e.g., Google, DuckDuckGo)</li>
+                  <li>Category filtering (images, videos, news) is provided best-effort and depends on upstream engines</li>
+                  <li>We do not control or endorse third-party search result content</li>
+                  <li>Search results may contain ads or sponsored content from upstream providers</li>
+                  <li><strong>Instant Answer Tools:</strong> Calculator, time/date display, translator, unit converter, and currency converter are provided as-is</li>
+                  <li><strong>Currency Converter:</strong> Exchange rates provided by FreeCurrencyAPI.com, cached for 1 hour, for informational purposes only</li>
+                  <li>Currency conversion rates may not reflect real-time market rates and should not be used for financial decisions</li>
+                  <li>Usage statistics for instant answers are stored locally for service improvement</li>
+                </ul>
+                <p className="text-muted-foreground">
+                  You agree not to misuse the search service for automated scraping, excessive requests, 
+                  or circumventing rate limits. We reserve the right to implement rate limiting or 
+                  CAPTCHA protection if abuse is detected.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">11. Modifications and Termination</h2>
                 <p className="text-muted-foreground">
                   We reserve the right to modify these terms at any time. Changes will be effective immediately 
                   upon posting. We may terminate or suspend your access to our services at any time, with or 
@@ -170,7 +199,7 @@ const Terms = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">11. Contact Information</h2>
+                <h2 className="text-2xl font-semibold mb-4">12. Contact Information</h2>
                 <p className="text-muted-foreground">
                   For questions about these Terms of Service, please contact us at{" "}
                   <a href="mailto:admin@enzonic.com" className="text-primary hover:underline">

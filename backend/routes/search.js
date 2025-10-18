@@ -235,111 +235,82 @@ router.get('/autocomplete', async (req, res) => {
       return res.status(400).json({ error: 'Query parameter "q" is required' });
     }
 
-    const params = new URLSearchParams();
-    params.append('q', q);
-    params.append('autocomplete', autocomplete);
-    params.append('format', 'json');
-    params.append('secret_key', SEARXNG_SECRET_KEY);
+    let suggestions = [];
 
-    const response = await fetch(`${SEARXNG_BASE_URL}/autocomplete?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Enzonic Search API Client/1.0',
-        'Accept': 'application/json',
+    // Try multiple autocomplete sources in order of preference
+    const sources = [
+      // DuckDuckGo autocomplete (no API key needed)
+      async () => {
+        const response = await fetch(`https://duckduckgo.com/ac/?q=${encodeURIComponent(q)}&type=list`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return Array.isArray(data) && data.length > 0 && Array.isArray(data[1]) ? data[1] : [];
+        }
+        return [];
       },
-    });
+      
+      // Google autocomplete via public endpoint
+      async () => {
+        const response = await fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          return Array.isArray(data) && data.length > 1 && Array.isArray(data[1]) ? data[1] : [];
+        }
+        return [];
+      },
+      
+      // Try SearXNG as fallback (if configured)
+      async () => {
+        const params = new URLSearchParams();
+        params.append('q', q);
+        params.append('autocomplete', autocomplete);
+        params.append('format', 'json');
+        params.append('secret_key', SEARXNG_SECRET_KEY);
 
-    if (!response.ok) {
-      throw new Error(`SearXNG autocomplete error: ${response.status} ${response.statusText}`);
+        const response = await fetch(`${SEARXNG_BASE_URL}/autocomplete?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Enzonic Search API Client/1.0',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return Array.isArray(data) ? data : [];
+        }
+        return [];
+      }
+    ];
+
+    // Try each source until we get results
+    for (const source of sources) {
+      try {
+        suggestions = await source();
+        if (suggestions.length > 0) {
+          break; // Got results, stop trying other sources
+        }
+      } catch (err) {
+        // Silently try next source
+        continue;
+      }
     }
 
-    const suggestions = await response.json();
-    
-    // Return the suggestions (should be an array)
-    res.json(Array.isArray(suggestions) ? suggestions : []);
+    // Return suggestions (empty array if all sources failed)
+    res.json(suggestions.slice(0, 10)); // Limit to 10 suggestions
 
   } catch (error) {
     console.error('Autocomplete error:', error);
-    console.log('Providing mock autocomplete suggestions for development');
-    
-    // Generate realistic autocomplete suggestions using req.query.q
-    const query = req.query.q || '';
-    
-    // Common autocomplete patterns based on query type
-    let patterns = [];
-    
-    if (query.length <= 2) {
-      // For very short queries, provide common completions
-      patterns = [
-        `${query}a`,
-        `${query}e`,
-        `${query}i`,
-        `${query}o`,
-        `${query}u`
-      ];
-    } else {
-      // For longer queries, provide contextual suggestions
-      const commonSuffixes = [
-        'meaning',
-        'tutorial',
-        'guide', 
-        'examples',
-        'definition',
-        'how to',
-        'what is',
-        'vs',
-        'free',
-        'online',
-        '2025',
-        'best',
-        'review',
-        'price',
-        'download',
-        'api',
-        'documentation',
-        'github',
-        'npm',
-        'install'
-      ];
-      
-      const commonPrefixes = [
-        'how to',
-        'what is',
-        'best',
-        'free',
-        'learn',
-        'download',
-        'install',
-        'buy'
-      ];
-      
-      // Generate suffix-based suggestions
-      patterns = commonSuffixes
-        .map(suffix => `${query} ${suffix}`)
-        .concat(commonPrefixes.map(prefix => `${prefix} ${query}`))
-        .filter(suggestion => suggestion.toLowerCase() !== query.toLowerCase())
-        .slice(0, 8);
-        
-      // If query contains space, also suggest related terms
-      if (query.includes(' ')) {
-        const words = query.split(' ');
-        const lastWord = words[words.length - 1];
-        const baseQuery = words.slice(0, -1).join(' ');
-        
-        // Add some contextual completions for the last word
-        if (lastWord.length > 1) {
-          patterns.unshift(`${baseQuery} ${lastWord}s`);
-          patterns.unshift(`${baseQuery} ${lastWord}ing`);
-          patterns.unshift(`${baseQuery} ${lastWord}er`);
-        }
-      }
-    }
-    
-    const mockSuggestions = patterns
-      .filter(suggestion => suggestion && suggestion.trim().length > query.length)
-      .slice(0, 8);
-    
-    res.json(mockSuggestions);
+    // Return empty array instead of mock suggestions in production
+    res.json([]);
   }
 });
 

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Grid3x3, Menu } from "lucide-react";
+import { Moon, Sun, Grid3x3, Menu, Youtube } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -74,6 +74,22 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              asChild
+              className="rounded-full hover:bg-primary/10 hover:text-primary transition-all h-10 w-10 flex items-center justify-center"
+            >
+              <a 
+                href="https://www.youtube.com/channel/UCss9ZEsraYR-oqLfD62KSGA" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Visit Enzonic YouTube Channel"
+              >
+                <Youtube className="h-5 w-5" />
+              </a>
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 hover:text-primary transition-all h-10 w-10 flex items-center justify-center">

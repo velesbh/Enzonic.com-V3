@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemedClerkProvider } from "@/components/ThemedClerkProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import TermsAcceptanceDialog from "@/components/TermsAcceptanceDialog";
 import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
 import About from "./pages/About";
@@ -38,6 +39,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <TermsAcceptanceDialog />
               <div className="overflow-x-hidden">
                 <Routes>
                   <Route path="/" element={<Index />} />

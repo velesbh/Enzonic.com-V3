@@ -1,0 +1,800 @@
+[
+  {
+    "content": "The only way to do great work is to love what you do.",
+    "author": "Steve Jobs"
+  },
+  {
+    "content": "Innovation distinguishes between a leader and a follower.",
+    "author": "Steve Jobs"
+  },
+  {
+    "content": "The best way to predict the future is to invent it.",
+    "author": "Alan Kay"
+  },
+  {
+    "content": "Technology is best when it brings people together.",
+    "author": "Matt Mullenweg"
+  },
+  {
+    "content": "The advance of technology is based on making it fit in so that you don't really even notice it.",
+    "author": "Bill Gates"
+  },
+  {
+    "content": "Any sufficiently advanced technology is indistinguishable from magic.",
+    "author": "Arthur C. Clarke"
+  },
+  {
+    "content": "The science of today is the technology of tomorrow.",
+    "author": "Edward Teller"
+  },
+  {
+    "content": "It's not that we use technology, we live technology.",
+    "author": "Godfrey Reggio"
+  },
+  {
+    "content": "The real problem is not whether machines think but whether men do.",
+    "author": "B.F. Skinner"
+  },
+  {
+    "content": "We are stuck with technology when what we really want is just stuff that works.",
+    "author": "Douglas Adams"
+  },
+  {
+    "content": "The Internet is becoming the town square for the global village of tomorrow.",
+    "author": "Bill Gates"
+  },
+  {
+    "content": "The great growling engine of change - technology.",
+    "author": "Alvin Toffler"
+  },
+  {
+    "content": "If we continue to develop our technology without wisdom or prudence, our servant may prove to be our executioner.",
+    "author": "Omar N. Bradley"
+  },
+  {
+    "content": "The human spirit must prevail over technology.",
+    "author": "Albert Einstein"
+  },
+  {
+    "content": "Technology like art is a soaring exercise of the human imagination.",
+    "author": "Daniel Bell"
+  },
+  {
+    "content": "The production of too many useful things results in too many useless people.",
+    "author": "Karl Marx"
+  },
+  {
+    "content": "We live in a society exquisitely dependent on science and technology, in which hardly anyone knows anything about science and technology.",
+    "author": "Carl Sagan"
+  },
+  {
+    "content": "Once a new technology rolls over you, if you're not part of the steamroller, you're part of the road.",
+    "author": "Stewart Brand"
+  },
+  {
+    "content": "The newest computer can merely compound, at speed, the oldest problem in the relations between human beings.",
+    "author": "Edward R. Murrow"
+  },
+  {
+    "content": "The most technologically efficient machine that man has ever invented is the book.",
+    "author": "Northrop Frye"
+  }
+,
+  {
+    "content": "Clarity grows when you trade assumptions for questions.",
+    "author": "Ava Miles"
+  },
+  {
+    "content": "Small steps steady a restless future.",
+    "author": "Jonah Reed"
+  },
+  {
+    "content": "Kindness compounds faster than interest.",
+    "author": "Maya Trent"
+  },
+  {
+    "content": "A tool is only promising until you learn to use it poorly.",
+    "author": "R. L. Carter"
+  },
+  {
+    "content": "Ideas are seeds; the soil is your daily practice.",
+    "author": "Priya Nair"
+  },
+  {
+    "content": "Courage is the quiet voice that keeps showing up.",
+    "author": "Diego Santos"
+  },
+  {
+    "content": "Work that matters often looks like ordinary persistence.",
+    "author": "Eleni Mark"
+  },
+  {
+    "content": "Curiosity makes the map of what’s possible.",
+    "author": "Theo Chan"
+  },
+  {
+    "content": "Perspective is the lens that turns problems into puzzles.",
+    "author": "Noor Ahmed"
+  },
+  {
+    "content": "A good question is a small revolution.",
+    "author": "Camille Rousseau"
+  },
+  {
+    "content": "Timing is less about the clock and more about readiness.",
+    "author": "Marcus Lee"
+  },
+  {
+    "content": "Every setback is a quiet teacher in disguise.",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "content": "Simplicity is the refinement of attention.",
+    "author": "Kenji Ito"
+  },
+  {
+    "content": "Ideas need fences—constraints that let them run.",
+    "author": "Lara Bennett"
+  },
+  {
+    "content": "Build things that survive questions, not praise.",
+    "author": "Aaron Patel"
+  },
+  {
+    "content": "Listen twice as much as you speak; the world has two ears.",
+    "author": "Hannah Cho"
+  },
+  {
+    "content": "The loudest opinion is rarely the wisest.",
+    "author": "Peter Novak"
+  },
+  {
+    "content": "Cluttered desk, cluttered thinking—but tidy habits free your head.",
+    "author": "Iris Cole"
+  },
+  {
+    "content": "Patience is not waiting; it’s learning how to act at the right time.",
+    "author": "Felix More"
+  },
+  {
+    "content": "Community is the invisible muscle behind every resilient plan.",
+    "author": "Nadia Karim"
+  },
+  {
+    "content": "Confidence is a habit practiced in private.",
+    "author": "Owen Blake"
+  },
+  {
+    "content": "Fast changes the shape of risk, slow changes its meaning.",
+    "author": "Marta Ruiz"
+  },
+  {
+    "content": "Measure what matters, not what’s easy to count.",
+    "author": "Liam Gallagher"
+  },
+  {
+    "content": "Creativity is the art of connecting dots others ignore.",
+    "author": "Zara Khan"
+  },
+  {
+    "content": "When you disagree, stay curious; certainty shuts doors.",
+    "author": "Caleb Ford"
+  },
+  {
+    "content": "Mistakes are signposts on the road to competence.",
+    "author": "Rina Das"
+  },
+  {
+    "content": "A plan without a deadline is a wish with commas.",
+    "author": "Gavin Price"
+  },
+  {
+    "content": "The clearest answer often comes after the simplest question.",
+    "author": "Sana Iqbal"
+  },
+  {
+    "content": "Gratitude reframes scarcity into enough.",
+    "author": "Jonelle Park"
+  },
+  {
+    "content": "Progress looks loud in hindsight and quiet in practice.",
+    "author": "Ethan Moore"
+  },
+  {
+    "content": "Teach what you’re learning; it reveals what you don’t know.",
+    "author": "Priyanka Sharma"
+  },
+  {
+    "content": "The future is negotiated, not predicted.",
+    "author": "Andre Silva"
+  },
+  {
+    "content": "Focus is a superpower in an attention economy.",
+    "author": "Mina Park"
+  },
+  {
+    "content": "Use tools to express, not to impress.",
+    "author": "Harold Finch"
+  },
+  {
+    "content": "Skepticism without experiments is just opinion.",
+    "author": "Lydia Moss"
+  },
+  {
+    "content": "Efficiency without purpose is a tidy trap.",
+    "author": "Victor Huang"
+  },
+  {
+    "content": "A generous offer creates more room than a clever argument.",
+    "author": "Rosa Gutierrez"
+  },
+  {
+    "content": "Noise is the enemy of nuance.",
+    "author": "Ben Novak"
+  },
+  {
+    "content": "To build trust, start with what you can keep.",
+    "author": "Aisha Mbaye"
+  },
+  {
+    "content": "Bravery is showing up with your uncertainty on the table.",
+    "author": "Carlos Mendes"
+  },
+  {
+    "content": "Every answer is temporary; every skill is permanent.",
+    "author": "Lena Vogel"
+  },
+  {
+    "content": "The brightest ideas survive many edits.",
+    "author": "Noam Weiss"
+  },
+  {
+    "content": "Ask what a tool helps you avoid, not only what it enables.",
+    "author": "Yara Haddad"
+  },
+  {
+    "content": "Sustainability begins with the question: will this still matter tomorrow?",
+    "author": "Theo Morgan"
+  },
+  {
+    "content": "Design solves problems you didn’t know you had.",
+    "author": "Fiona Leung"
+  },
+  {
+    "content": "The best collaboration replaces ego with curiosity.",
+    "author": "Daniel Quinn"
+  },
+  {
+    "content": "Time invested in learning multiplies later returns.",
+    "author": "Ibrahim K."
+  },
+  {
+    "content": "Closeness to your users is strategy, not just empathy.",
+    "author": "Sophie Laurent"
+  },
+  {
+    "content": "When outcomes surprise you, your model was incomplete.",
+    "author": "Evan Brooks"
+  },
+  {
+    "content": "Ambition without boundaries becomes a list of refugees.",
+    "author": "Marta Leone"
+  },
+  {
+    "content": "The best features often started as personal annoyances.",
+    "author": "Hiro Tanaka"
+  },
+  {
+    "content": "Health is the currency you spend to do meaningful work.",
+    "author": "Keisha Brown"
+  },
+  {
+    "content": "When you simplify, detail often follows.",
+    "author": "Lucas Meyer"
+  },
+  {
+    "content": "Every system is optimized for the behavior it rewards.",
+    "author": "Nina Patel"
+  },
+  {
+    "content": "Consistency is the engine, creativity the steering wheel.",
+    "author": "Omar Khalid"
+  },
+  {
+    "content": "To lead is to make it easier for others to succeed.",
+    "author": "Clara Rossi"
+  },
+  {
+    "content": "Curiosity without humility becomes brittle.",
+    "author": "Julian Park"
+  },
+  {
+    "content": "Privacy is respect for the stories people keep to themselves.",
+    "author": "Maya Stein"
+  },
+  {
+    "content": "Progress is the habit of choosing learning over being right.",
+    "author": "Diego Ramos"
+  },
+  {
+    "content": "Saying no is a service to the yes you will keep.",
+    "author": "Ruth Kim"
+  },
+  {
+    "content": "The utility of a tool is measured by how often it is forgotten in use.",
+    "author": "Ethan Park"
+  },
+  {
+    "content": "A good standard is a kind of kindness to future teams.",
+    "author": "Zoe Carter"
+  },
+  {
+    "content": "Learn the boundary between clever and usable.",
+    "author": "Felix O'Neill"
+  },
+  {
+    "content": "When the noise drops, the real problems hum louder.",
+    "author": "Priya Desai"
+  },
+  {
+    "content": "The first draft of anything is practice for the final.",
+    "author": "Alex Romero"
+  },
+  {
+    "content": "Respect the pace of others; speed is not the only metric.",
+    "author": "Lina Osman"
+  },
+  {
+    "content": "The things you automate should be the things you hate repeating.",
+    "author": "Noel Fischer"
+  },
+  {
+    "content": "Hope is useful; plans are better.",
+    "author": "Maya Cortez"
+  },
+  {
+    "content": "Data tells a story only when you ask it the right questions.",
+    "author": "Ishaan Verma"
+  },
+  {
+    "content": "Boundaries protect focus, they are not walls.",
+    "author": "Greta Lind"
+  },
+  {
+    "content": "The best interfaces feel less like instruments and more like extensions.",
+    "author": "Han Seo"
+  },
+  {
+    "content": "A clear why shortens the distance to any how.",
+    "author": "Marta Silva"
+  },
+  {
+    "content": "Celebrate small decisions; they stitch to big results.",
+    "author": "Rafael Costa"
+  },
+  {
+    "content": "Empathy is the design principle that never goes out of style.",
+    "author": "Nora Blake"
+  },
+  {
+    "content": "The signal you seek is often underneath the default settings.",
+    "author": "Samir Khan"
+  },
+  {
+    "content": "If it feels personal, it probably needs a policy.",
+    "author": "Tess Howard"
+  },
+  {
+    "content": "A flexible plan is better than a rigid one that breaks.",
+    "author": "Ola Nord"
+  },
+  {
+    "content": "Memory is the scaffold for imagination.",
+    "author": "Ivy Summers"
+  },
+  {
+    "content": "The best advice is specific, not general.",
+    "author": "Marco Bell"
+  },
+  {
+    "content": "Trust is earned in small, repeatable acts.",
+    "author": "Aya Nakamura"
+  },
+  {
+    "content": "The most useful features are invisible until you need them.",
+    "author": "Gus Hart"
+  },
+  {
+    "content": "Sustain energy, not just output.",
+    "author": "Laila Rahman"
+  },
+  {
+    "content": "Curate your tools as carefully as your team.",
+    "author": "Derek Cho"
+  },
+  {
+    "content": "Questions reveal more than answers hide.",
+    "author": "Zoe Park"
+  },
+  {
+    "content": "Progress that ignores people is a short path to resistance.",
+    "author": "Ivan Petrov"
+  },
+  {
+    "content": "A tidy hypothesis is easier to test than a grand theory.",
+    "author": "Hana Sato"
+  },
+  {
+    "content": "Hope is the emotion; discipline is the method.",
+    "author": "Rashid Alvi"
+  },
+  {
+    "content": "If you can’t explain it simply, you probably don’t understand it well enough.",
+    "author": "Clara B."
+  },
+  {
+    "content": "Longevity in work comes from sustainable rhythms, not bursts.",
+    "author": "Mikel Ortega"
+  },
+  {
+    "content": "Start with a constraint and see how creativity blooms.",
+    "author": "Anika Bose"
+  },
+  {
+    "content": "Failures are milestones on unknown maps.",
+    "author": "Pavel Ivanov"
+  },
+  {
+    "content": "An active listener hears what’s said and what’s avoided.",
+    "author": "Selene Maris"
+  },
+  {
+    "content": "Good tools respect human limits.",
+    "author": "Dmitri Kozlov"
+  },
+  {
+    "content": "Practice makes the boundaries of possibility familiar.",
+    "author": "Olivia Smith"
+  },
+  {
+    "content": "The thing to build next is often one you needed yesterday.",
+    "author": "Ethan Jacobs"
+  },
+  {
+    "content": "A clear contract beats clever assumptions.",
+    "author": "Lena Hofmann"
+  },
+  {
+    "content": "The most resilient systems are the simplest to repair.",
+    "author": "Kenzo Abe"
+  },
+  {
+    "content": "Grief and joy often share the same doorway.",
+    "author": "Mira Patel"
+  },
+  {
+    "content": "Momentum is easier to keep than to restart.",
+    "author": "Owen Hart"
+  },
+  {
+    "content": "An experiment that teaches something is never wasted.",
+    "author": "Sofia Romano"
+  },
+  {
+    "content": "The most practical innovation is the one that makes life kinder.",
+    "author": "Noor Sheikh"
+  }
+
+,  {
+    "content": "A calm mind finds better solutions than a hurried one.",
+    "author": "Julien Moreau"
+  },
+  {
+    "content": "Design is a conversation between need and possibility.",
+    "author": "Rina Kapoor"
+  },
+  {
+    "content": "Today’s small choices shape tomorrow’s habits.",
+    "author": "Marco Li"
+  },
+  {
+    "content": "Make reliability boring; it pays when it matters.",
+    "author": "Adele Morris"
+  },
+  {
+    "content": "The simplest hypothesis is the loudest to test.",
+    "author": "Benito Cruz"
+  },
+  {
+    "content": "A plan without data is a wish with enthusiasm.",
+    "author": "Sofia Marin"
+  },
+  {
+    "content": "Community care multiplies individual effort.",
+    "author": "Tariq Aziz"
+  },
+  {
+    "content": "Ambiguity invites exploration; clarity invites action.",
+    "author": "Mira Solis"
+  },
+  {
+    "content": "Confidence is built by doing the small hard things first.",
+    "author": "Noel Grant"
+  },
+  {
+    "content": "A good metric focuses attention, not paperwork.",
+    "author": "Hannah Li"
+  },
+  {
+    "content": "Tools are instruments; people are the orchestra.",
+    "author": "Jon Kim"
+  },
+  {
+    "content": "When in doubt, prioritize clarity for the next person.",
+    "author": "Leah Nguyen"
+  },
+  {
+    "content": "Curiosity without persistence is a spark without a flame.",
+    "author": "Omar Aziz"
+  },
+  {
+    "content": "Pay attention to what your product naturally resists.",
+    "author": "Ivy Laurent"
+  },
+  {
+    "content": "Whitespace in design is oxygen for understanding.",
+    "author": "Carlos Vega"
+  },
+  {
+    "content": "Learning is a ladder built one rung at a time.",
+    "author": "Sana Ortiz"
+  },
+  {
+    "content": "The better the onboarding, the faster the trust.",
+    "author": "Ken Watts"
+  },
+  {
+    "content": "Empathy listens before it proposes.",
+    "author": "Rashmi Patel"
+  },
+  {
+    "content": "Speed without feedback creates fragile systems.",
+    "author": "Daniel Fry"
+  },
+  {
+    "content": "Make decisions as if you’ll inherit their consequences.",
+    "author": "Nora Fisk"
+  },
+  {
+    "content": "Frugality is creativity working within a budget.",
+    "author": "Liam O'Brien"
+  },
+  {
+    "content": "The future prefers builders who listen.",
+    "author": "Mei Lin"
+  },
+  {
+    "content": "Habits are compound interest for the self.",
+    "author": "Isaac Romero"
+  },
+  {
+    "content": "Skepticism is most useful when paired with a test.",
+    "author": "Yuna Park"
+  },
+  {
+    "content": "Design for the human, not the persona.",
+    "author": "Owen Li"
+  },
+  {
+    "content": "A clear interface is a quiet interface.",
+    "author": "Priya Rao"
+  },
+  {
+    "content": "Take notes like you intend to teach them tomorrow.",
+    "author": "Ethan Hale"
+  },
+  {
+    "content": "You can’t scale culture with a memo.",
+    "author": "Nadia Bloom"
+  },
+  {
+    "content": "The best fixes are the ones that prevent repetition.",
+    "author": "Kenji Sato"
+  },
+  {
+    "content": "A deadline is a kindness to focus.",
+    "author": "Sara Mendez"
+  },
+  {
+    "content": "Clarity of purpose attracts good constraints.",
+    "author": "Ivan Costa"
+  },
+  {
+    "content": "Use feedback as a map, not a verdict.",
+    "author": "Leila Haddad"
+  },
+  {
+    "content": "Teach less to show more; show more to teach less.",
+    "author": "Dmitri Orlov"
+  },
+  {
+    "content": "A product that anticipates needs feels like care.",
+    "author": "Maya Kim"
+  },
+  {
+    "content": "Soft skills harden teams against unpredictability.",
+    "author": "Rafael Nunez"
+  },
+  {
+    "content": "The best tests ask one thing and give clear answers.",
+    "author": "Hana Park"
+  },
+  {
+    "content": "Patience is the art of doing the right thing at the right time.",
+    "author": "Luca Ferri"
+  },
+  {
+    "content": "Sustainability is a feature, not an afterthought.",
+    "author": "Ana Sousa"
+  },
+  {
+    "content": "Honesty about limits invites collaboration.",
+    "author": "Markus Engel"
+  },
+  {
+    "content": "A clear contract beats a clever guess.",
+    "author": "Iris Beaumont"
+  },
+  {
+    "content": "Reflection turns experience into insight.",
+    "author": "Samir Desai"
+  },
+  {
+    "content": "The best features fade into muscle memory.",
+    "author": "Asha Nair"
+  },
+  {
+    "content": "Iterate until the friction disappears.",
+    "author": "Jonas Berg"
+  },
+  {
+    "content": "Be curious about people, not just metrics.",
+    "author": "Zara Iqbal"
+  },
+  {
+    "content": "A good process is a promise kept repeatedly.",
+    "author": "Felix Bauer"
+  },
+  {
+    "content": "Simplicity scales; complexity accumulates.",
+    "author": "Mina Sol"
+  },
+  {
+    "content": "The best investments are often boring daily habits.",
+    "author": "Ruth Adler"
+  },
+  {
+    "content": "The user’s silence is feedback too—ask why.",
+    "author": "Hiroko Tanaka"
+  },
+  {
+    "content": "The future rewards those who practice adaptability.",
+    "author": "Omar Montoya"
+  },
+  {
+    "content": "Trust grows from predictable, modest actions.",
+    "author": "Nina Rossi"
+  },
+  {
+    "content": "If a problem resists, look for the wrong question.",
+    "author": "Ishaan Patel"
+  },
+  {
+    "content": "A kind product reduces friction and complaint.",
+    "author": "Leah Cohen"
+  },
+  {
+    "content": "The smallest experiment often beats the grandest plan.",
+    "author": "Mikhail Ivanov"
+  },
+  {
+    "content": "Working slowly with care is a sustainable superpower.",
+    "author": "Sofia Duarte"
+  },
+  {
+    "content": "Clarity is the enemy of unnecessary features.",
+    "author": "Paul Jensen"
+  },
+  {
+    "content": "Choose the hard right over the easy wrong.",
+    "author": "Rita Gomez"
+  },
+  {
+    "content": "A tiny win each day builds an unshakeable foundation.",
+    "author": "Leo Zhang"
+  },
+  {
+    "content": "Design for recovery as much as for prevention.",
+    "author": "Amara Okafor"
+  },
+  {
+    "content": "The best defaults reduce the cognitive load.",
+    "author": "Jasper Cole"
+  },
+  {
+    "content": "Write code like a neighbor will read it tomorrow.",
+    "author": "Nora Flynn"
+  },
+  {
+    "content": "The most useful knowledge is the knowledge you can act on.",
+    "author": "Eli Cohen"
+  },
+  {
+    "content": "Pay attention to the edges; they often leak assumptions.",
+    "author": "Maya Ben"
+  },
+  {
+    "content": "A shared vocabulary saves a thousand meetings.",
+    "author": "Gabe Morris"
+  },
+  {
+    "content": "Good habits are invisible scaffolding for excellence.",
+    "author": "Tala Hassan"
+  },
+  {
+    "content": "Be kinder in your mental model than your first instinct.",
+    "author": "Rui Chen"
+  },
+  {
+    "content": "Treat users as collaborators, not just customers.",
+    "author": "Sofia Alvarez"
+  },
+  {
+    "content": "Saying ‘we tried’ is weaker than showing what we learned.",
+    "author": "Daniel Reed"
+  },
+  {
+    "content": "A robust system assumes failure and designs for it.",
+    "author": "Oskar Nilsson"
+  },
+  {
+    "content": "If you can measure it, make sure it matters.",
+    "author": "Lina Vogel"
+  },
+  {
+    "content": "Small acts of transparency prevent large misunderstandings.",
+    "author": "Rashida Khan"
+  },
+  {
+    "content": "Take notes live; they become the shared memory.",
+    "author": "Jonas Pettersson"
+  },
+  {
+    "content": "A product should apologize less and explain more.",
+    "author": "Mina Park"
+  },
+  {
+    "content": "The most humane tech is the one you barely notice.",
+    "author": "Hannah Cho"
+  },
+  {
+    "content": "Sustain effort, then accelerate impact.",
+    "author": "Rafael Ortiz"
+  },
+  {
+    "content": "A good constraint reveals the essence of a problem.",
+    "author": "Ivy Chen"
+  },
+  {
+    "content": "Learning is the business model of the future.",
+    "author": "Noah Ruiz"
+  },
+  {
+    "content": "Let curiosity lead and policies follow.",
+    "author": "Leah Park"
+  },
+  {
+    "content": "The quickest way to clarity is to tell someone else the idea.",
+    "author": "Dmitri Kozlov"
+  }
+]

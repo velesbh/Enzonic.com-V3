@@ -18,13 +18,26 @@ export interface SearchResult {
   img_src?: string;
 }
 
+export interface SearXNGAnswer {
+  answer: string;
+  url?: string;
+}
+
+export interface SearXNGInfobox {
+  infobox: string;
+  content: string;
+  img_src?: string;
+  urls?: Array<{ title: string; url: string }>;
+  attributes?: Array<{ label: string; value: string }>;
+}
+
 export interface SearchResponse {
   query: string;
   number_of_results: number;
   results: SearchResult[];
-  answers: any[];
+  answers: SearXNGAnswer[];
   corrections: any[];
-  infoboxes: any[];
+  infoboxes: SearXNGInfobox[];
   suggestions: string[];
   unresponsive_engines: string[];
 }
@@ -44,14 +57,14 @@ export const searchWeb = async (options: SearchOptions): Promise<SearchResponse>
   
   // Add parameters
   params.append('q', options.q);
-  if (options.categories) params.append('categories', options.categories);
   
-  // Exclude Wikipedia from general searches to avoid duplication with Wikipedia sidebar
+  // Always include categories - default to 'general' if not specified
+  params.append('categories', options.categories || 'general');
+  
+  // Only add engines parameter if explicitly specified
+  // Don't exclude Wikipedia by default - let SearXNG use all available engines
   if (options.engines) {
     params.append('engines', options.engines);
-  } else {
-    // Use engines that exclude Wikipedia for general searches
-    params.append('engines', '!wikipedia');
   }
   
   if (options.language) params.append('language', options.language);
@@ -109,8 +122,7 @@ export const getAutocompleteSuggestions = async (query: string, service: string 
 
 export const searchWikipedia = async (query: string, language: string = 'en'): Promise<any> => {
   const params = new URLSearchParams({
-    q: query,
-    engines: 'wikipedia',
+    q: `${query} site:wikipedia.org`,
     language: language,
     categories: 'general'
   });

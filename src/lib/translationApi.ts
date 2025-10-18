@@ -16,6 +16,52 @@ export interface SaveTranslationRequest {
   targetLang: string;
 }
 
+export interface TranslationResult {
+  translatedText: string;
+  sourceLang: string;
+  targetLang: string;
+}
+
+// Translate text using the translation API
+export async function translateText(
+  text: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<TranslationResult> {
+  try {
+    const response = await fetch(`${env.API_URL}/api/translate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        source: sourceLang,
+        target: targetLang,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Translation failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      translatedText: data.translatedText || data.translation || text,
+      sourceLang,
+      targetLang,
+    };
+  } catch (error) {
+    console.error('Error translating text:', error);
+    // Fallback: return original text if translation fails
+    return {
+      translatedText: text,
+      sourceLang,
+      targetLang,
+    };
+  }
+}
+
 // Save translation to history
 export async function saveTranslationToHistory(translation: SaveTranslationRequest, getToken: () => Promise<string | null>): Promise<boolean> {
   try {

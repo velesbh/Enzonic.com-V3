@@ -53,6 +53,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 
+
 interface ServiceConfig {
   id: string;
   name: string;
@@ -114,6 +115,7 @@ const Admin = () => {
   const [realtimeData, setRealtimeData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [adminToken, setAdminToken] = useState<string>('');
   const { toast } = useToast();
 
   // Auto-refresh interval
@@ -155,6 +157,7 @@ const Admin = () => {
           return;
         }
 
+        setAdminToken(token);
         const result = await checkAdminStatus(token);
         setIsAdmin(result.isAdmin);
       } catch (error) {

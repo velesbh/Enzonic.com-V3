@@ -47,6 +47,23 @@ const Privacy = () => {
                   within Discord servers where it's installed. This includes conversation history for context and memory features. 
                   Bot data is processed in accordance with Discord's Terms of Service and our data retention policies.
                 </p>
+                <p className="text-muted-foreground mt-4">
+                  <strong>Enzonic Search Data:</strong> When using our search service and instant answers:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                  <li>Your search queries are proxied through our backend to SearXNG for privacy protection</li>
+                  <li>Search history is stored locally in your browser (localStorage) - we do not store it on our servers</li>
+                  <li>Search queries may be collected for anonymized analytics (e.g., popular searches, usage patterns)</li>
+                  <li>Your IP address may be temporarily logged for rate limiting and abuse prevention</li>
+                  <li>No personally identifiable search data is retained beyond 24 hours</li>
+                  <li>Autocomplete requests are forwarded to third-party providers (Google, DuckDuckGo) via our proxy</li>
+                  <li>Wikipedia sidebar content is fetched from Wikipedia's API through our backend</li>
+                  <li>Category filters and page navigation preferences are stored in your browser session</li>
+                  <li><strong>Currency Converter:</strong> Exchange rates are fetched from FreeCurrencyAPI.com and cached locally for 1 hour</li>
+                  <li>Currency conversion requests include only currency codes and amounts - no personal data</li>
+                  <li>Usage statistics for instant answers (calculator, converter, etc.) are stored locally for analytics</li>
+                  <li>No financial transaction data is collected or processed through our currency converter</li>
+                </ul>
               </div>
 
               <div>
@@ -93,6 +110,8 @@ const Privacy = () => {
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li><strong>Account Data:</strong> Retained while your account is active and for up to 2 years after closure</li>
                   <li><strong>AI Conversation Data:</strong> Stored for up to 30 days for service delivery, then anonymized or deleted</li>
+                  <li><strong>Search Query Logs:</strong> Anonymized search analytics retained for up to 90 days, then deleted</li>
+                  <li><strong>Search History (Browser):</strong> Stored locally in your browser indefinitely until you clear it manually</li>
                   <li><strong>Support Communications:</strong> Retained for up to 3 years for customer service purposes</li>
                   <li><strong>Marketing Data:</strong> Retained until you withdraw consent or for up to 2 years of inactivity</li>
                   <li><strong>Legal/Compliance Data:</strong> Retained as required by applicable laws</li>
@@ -162,10 +181,19 @@ const Privacy = () => {
                 <p className="text-muted-foreground mb-4">
                   <strong>AI-Specific Rights:</strong>
                 </p>
-                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
                   <li>Request deletion of your AI conversation history</li>
                   <li>For G-Coder: Opt-out of using your coding inputs for model improvement</li>
                   <li>Request information about AI decision-making processes affecting you</li>
+                </ul>
+                <p className="text-muted-foreground mb-4">
+                  <strong>Search-Specific Rights:</strong>
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                  <li>Clear your local search history at any time through your browser settings</li>
+                  <li>Request deletion of any server-side anonymized search analytics linked to you</li>
+                  <li>Opt-out of search query analytics collection by contacting us</li>
+                  <li>Use private/incognito browsing to prevent local search history storage</li>
                 </ul>
               </div>
 
@@ -234,7 +262,27 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">14. Automated Decision-Making</h2>
+                <h2 className="text-2xl font-semibold mb-4">14. Third-Party Search Services</h2>
+                <p className="text-muted-foreground mb-4">
+                  Enzonic Search aggregates results from third-party search engines via SearXNG. When you use our search service:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li>Your queries are forwarded to upstream search engines (Google, Bing, DuckDuckGo, Wikipedia, etc.)</li>
+                  <li>We act as a proxy to enhance your privacy and prevent direct tracking by these services</li>
+                  <li>Third-party search engines have their own privacy policies and may collect data independently</li>
+                  <li>SearXNG (our search provider) is an open-source metasearch engine that prioritizes privacy</li>
+                  <li>We do not receive revenue from search engine providers or display targeted ads based on searches</li>
+                  <li>Wikipedia content displayed in the sidebar is fetched from Wikipedia's API and subject to Wikipedia's privacy policy</li>
+                </ul>
+                <p className="text-muted-foreground">
+                  While we take steps to protect your privacy, we cannot control how third-party search engines 
+                  handle data once it leaves our proxy. We recommend reviewing the privacy policies of individual 
+                  search engines for comprehensive information.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">15. Automated Decision-Making</h2>
                 <p className="text-muted-foreground">
                   We may use automated decision-making, including AI systems, to provide personalized services 
                   and recommendations. You have the right to request human intervention, express your point of view, 
