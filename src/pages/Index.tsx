@@ -192,6 +192,7 @@ const Index = () => {
   };
 
   const quickActions = [
+    { name: "Enzonic Chatbot", path: "/chatbot", icon: Brain, description: "AI Assistant", color: "from-purple-500 to-indigo-600" },
     { name: "Enzonic Emi", path: "/emi", icon: Brain, description: "AI Discord Bot", color: "from-blue-500 to-purple-600" },
     { name: "Enzonic Boxes", path: "/boxes", icon: Server, description: "Virtual Machines", color: "from-green-500 to-teal-600" },
     { name: "Enzonic Translate", path: "/translate", icon: Languages, description: "AI Translation", color: "from-orange-500 to-red-600" },

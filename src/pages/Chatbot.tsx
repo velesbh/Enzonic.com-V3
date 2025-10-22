@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MessageCircle, Send, Bot, User, UserPlus, ChevronsUpDown, Check, ArrowUp, Plus, Grid3x3, Moon, Sun, Menu, Trash2, Copy, AlertCircle, ChevronLeft, MoreHorizontal, Download, RotateCcw, Play, ChevronDown, ChevronUp, Sparkles, Brain, Zap, Settings, Square, Save } from "lucide-react";
+import { MessageCircle, Send, Bot, User, UserPlus, ChevronsUpDown, Check, ArrowUp, Plus, Grid3x3, Moon, Sun, Menu, Trash2, Copy, AlertCircle, ChevronLeft, MoreHorizontal, Download, RotateCcw, Play, ChevronDown, ChevronUp, Sparkles, Brain, Zap, Settings, Square, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -65,6 +65,11 @@ const Chatbot = () => {
   const { getToken, isSignedIn } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  
+  // Message limit for non-signed-in users
+  const MESSAGE_LIMIT_GUEST = 8;
+  const guestMessageCount = !isSignedIn ? chatHistory.filter(m => m.role === 'user').length : 0;
+  const hasReachedLimit = !isSignedIn && guestMessageCount >= MESSAGE_LIMIT_GUEST;
   
   // Check service availability
   const { status: serviceStatus, loading: serviceLoading } = useServiceStatus('chatbot');
@@ -284,7 +289,10 @@ const Chatbot = () => {
       const isMobile = window.innerWidth < 768;
       const isTyping = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
       
-      if (!isMobile && !isTyping && textareaRef.current && e.key.length === 1) {
+      // Don't auto-focus if any modifier keys are pressed (Ctrl, Alt, Meta/Cmd, Shift+Ctrl combinations)
+      const hasModifier = e.ctrlKey || e.metaKey || e.altKey || (e.shiftKey && e.ctrlKey);
+      
+      if (!isMobile && !isTyping && !hasModifier && textareaRef.current && e.key.length === 1) {
         textareaRef.current.focus();
       }
     };
@@ -878,6 +886,17 @@ const Chatbot = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading || isStreaming) return;
 
+    // Check message limit for non-signed-in users
+    if (!isSignedIn && chatHistory.filter(m => m.role === 'user').length >= MESSAGE_LIMIT_GUEST) {
+      toast({
+        title: "Message Limit Reached",
+        description: `You've reached the limit of ${MESSAGE_LIMIT_GUEST} messages. Please sign in to continue chatting.`,
+        variant: "destructive",
+        duration: 5000,
+      });
+      return;
+    }
+
     // Create a new session ID only if we don't have one
     let sessionId = currentSessionId;
     if (!sessionId) {
@@ -1106,7 +1125,7 @@ const Chatbot = () => {
     <div className="min-h-screen bg-background relative">
       <SignedIn>
         <div className="flex h-screen">
-          {/* Sidebar */}
+          {/* Sidebar - Only shown when signed in */}
           <div className={cn(
             "flex-shrink-0 border-r border-border bg-card transition-all duration-300",
             sidebarOpen ? "w-72" : "w-0 overflow-hidden"
@@ -1902,37 +1921,211 @@ const Chatbot = () => {
         </div>
       </SignedIn>
 
-      {/* Sign In Overlay for Guests */}
+      {/* Guest Mode - Cubic model, no sidebar, 8 message limit */}
       <SignedOut>
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <Card className="max-w-md mx-4 shadow-2xl border-2">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-6">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto">
-                  <MessageCircle className="w-8 h-8 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Welcome to Enzonic AI</h2>
-                  <p className="text-muted-foreground">
-                    Sign in to start chatting with our AI assistants
-                  </p>
-                </div>
-                <div className="space-y-3">
+        <div className="flex h-screen">
+          {/* Main Chat Area - Full width for guests */}
+          <div className="flex-1 flex flex-col relative bg-background">
+            {/* Message limit warning banner */}
+            {guestMessageCount > 0 && (
+              <div className="flex-shrink-0 bg-muted/50 border-b border-border px-4 py-2.5">
+                <div className="flex items-center justify-between max-w-4xl mx-auto">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      Guest Mode: <span className="font-medium text-foreground">{guestMessageCount}/{MESSAGE_LIMIT_GUEST}</span> messages used • Model: <span className="font-medium text-foreground">Cubic</span>
+                    </span>
+                  </div>
                   <SignInButton mode="modal">
-                    <Button className="w-full" size="lg">
-                      Sign In
+                    <Button size="sm" variant="outline">
+                      Sign In for Unlimited
                     </Button>
                   </SignInButton>
-                  <SignUpButton mode="modal">
-                    <Button variant="outline" className="w-full" size="lg">
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Create Account
-                    </Button>
-                  </SignUpButton>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            )}
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto relative">
+              {chatHistory.length === 0 && !isStreaming && !isLoading ? (
+                <div className="flex flex-col items-center justify-center h-full px-4 relative z-10">
+                  {/* Background gradient */}
+                  <div className="absolute inset-0 z-0">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(120,119,198,0.1),transparent_50%)]"></div>
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,119,198,0.1),transparent_50%)]"></div>
+                    </div>
+                  </div>
+
+                  {/* Welcome message */}
+                  <div className="relative z-10 text-center max-w-2xl">
+                    <div className="mb-6">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-4">
+                        <img 
+                          src={chatbotLogo} 
+                          alt="Enzonic AI" 
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      </div>
+                      <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        Welcome to Enzonic AI
+                      </h1>
+                      <p className="text-lg text-muted-foreground mb-2">
+                        Try Cubic AI in guest mode
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">{MESSAGE_LIMIT_GUEST} free messages</span> • No signup required
+                      </p>
+                    </div>
+
+                    {/* Quick actions */}
+                    <div className="flex flex-col gap-2 items-center">
+                      <SignInButton mode="modal">
+                        <Button size="lg" className="shadow-lg">
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Sign In for Full Access
+                        </Button>
+                      </SignInButton>
+                      <p className="text-xs text-muted-foreground">
+                        Unlock all models, unlimited messages, and chat history
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+                  {chatHistory.map((msg, index) => (
+                    <div 
+                      key={msg.id} 
+                      className={cn(
+                        "flex gap-4 group",
+                        msg.role === 'user' ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      {msg.role === 'assistant' && (
+                        <div className="flex-shrink-0">
+                          <ModelAvatar 
+                            model={models.find(m => m.id === 'cubic')} 
+                            size="md"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className={cn(
+                        "flex flex-col gap-2 max-w-[80%]",
+                        msg.role === 'user' && "items-end"
+                      )}>
+                        <div className={cn(
+                          "rounded-2xl px-4 py-3",
+                          msg.role === 'user' 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted"
+                        )}>
+                          <div 
+                            className="prose prose-sm dark:prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ __html: formatMarkdown(msg.content) }}
+                          />
+                        </div>
+                      </div>
+
+                      {msg.role === 'user' && (
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                            <User className="w-4 h-4 text-primary" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Streaming Message */}
+                  {isStreaming && streamingMessage && (
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <ModelAvatar 
+                          model={models.find(m => m.id === 'cubic')} 
+                          size="md"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 max-w-[80%]">
+                        <div className="rounded-2xl px-4 py-3 bg-muted">
+                          <div 
+                            className="prose prose-sm dark:prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ __html: formatMarkdown(streamingMessage) }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isLoading && !isStreaming && (
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <ModelAvatar 
+                          model={models.find(m => m.id === 'cubic')} 
+                          size="md"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">Thinking...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* Input Area */}
+            <div className="flex-shrink-0 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+              <div className="max-w-4xl mx-auto px-4 py-4">
+                {hasReachedLimit ? (
+                  <div className="text-center py-6 px-4 bg-muted/50 rounded-lg border border-border">
+                    <h3 className="font-semibold mb-2">Message Limit Reached</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      You've used all {MESSAGE_LIMIT_GUEST} free messages. Sign in to continue chatting!
+                    </p>
+                    <SignInButton mode="modal">
+                      <Button>
+                        Sign In to Continue
+                      </Button>
+                    </SignInButton>
+                  </div>
+                ) : (
+                  <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2">
+                    <Textarea
+                      ref={textareaRef}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Type your message..."
+                      className="min-h-[52px] max-h-[200px] resize-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      disabled={isLoading || isStreaming}
+                    />
+                    <Button 
+                      type="submit"
+                      size="icon"
+                      className="h-[52px] w-[52px] flex-shrink-0"
+                      disabled={!message.trim() || isLoading || isStreaming}
+                    >
+                      {isLoading || isStreaming ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Send className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </SignedOut>
     </div>

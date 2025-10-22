@@ -158,6 +158,9 @@ export async function initializeDatabase() {
     // Insert default service configurations if they don't exist
     await initializeDefaultServices(connection);
     
+    // Run automatic migrations
+    await runMigrations(connection);
+    
     console.log('Database tables created successfully');
     connection.release();
   } catch (error) {
@@ -166,16 +169,61 @@ export async function initializeDatabase() {
   }
 }
 
+// Automatic migration function
+async function runMigrations(connection) {
+  try {
+    console.log('Checking for database migrations...');
+    
+    // Check if type and file_name columns exist in translation_history
+    const [columns] = await connection.execute(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = ? 
+      AND TABLE_NAME = 'translation_history' 
+      AND COLUMN_NAME IN ('type', 'file_name')
+    `, [dbConfig.database]);
+
+    // Add type column if it doesn't exist
+    if (!columns.some(col => col.COLUMN_NAME === 'type')) {
+      console.log('  → Adding type column to translation_history...');
+      await connection.execute(`
+        ALTER TABLE translation_history 
+        ADD COLUMN type ENUM('text', 'file') DEFAULT 'text' NOT NULL AFTER target_language
+      `);
+      console.log('  ✓ Added type column');
+    }
+
+    // Add file_name column if it doesn't exist
+    if (!columns.some(col => col.COLUMN_NAME === 'file_name')) {
+      console.log('  → Adding file_name column to translation_history...');
+      await connection.execute(`
+        ALTER TABLE translation_history 
+        ADD COLUMN file_name VARCHAR(255) NULL AFTER type
+      `);
+      console.log('  ✓ Added file_name column');
+    }
+
+    if (columns.length === 2) {
+      console.log('  ✓ All migrations up to date');
+    } else {
+      console.log('  ✓ Migrations completed successfully');
+    }
+  } catch (error) {
+    console.error('  ✗ Error running migrations:', error);
+    // Don't throw - let the app continue even if migration fails
+  }
+}
+
 // Save translation to history
-export async function saveTranslation(userId, sourceText, translatedText, sourceLang, targetLang) {
+export async function saveTranslation(userId, sourceText, translatedText, sourceLang, targetLang, type = 'text', fileName = null) {
   try {
     const [result] = await pool.execute(
-      `INSERT INTO translation_history (user_id, source_text, translated_text, source_language, target_language) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [userId, sourceText, translatedText, sourceLang, targetLang]
+      `INSERT INTO translation_history (user_id, source_text, translated_text, source_language, target_language, type, file_name) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userId, sourceText, translatedText, sourceLang, targetLang, type, fileName]
     );
     
-    // Keep only last 5 translations for this user
+    // Keep only last 10 translations for this user (increased from 5)
     await pool.execute(
       `DELETE FROM translation_history 
        WHERE user_id = ? 
@@ -184,7 +232,7 @@ export async function saveTranslation(userId, sourceText, translatedText, source
            SELECT id FROM translation_history 
            WHERE user_id = ? 
            ORDER BY created_at DESC 
-           LIMIT 5
+           LIMIT 10
          ) AS keep_records
        )`,
       [userId, userId]
@@ -204,7 +252,7 @@ export async function getTranslationHistory(userId) {
       `SELECT * FROM translation_history 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
-       LIMIT 5`,
+       LIMIT 10`,
       [userId]
     );
     return rows;

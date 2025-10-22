@@ -7,6 +7,8 @@ export interface TranslationHistoryItem {
   sourceLang: string;
   targetLang: string;
   createdAt: string;
+  type?: 'text' | 'file';
+  fileName?: string;
 }
 
 export interface SaveTranslationRequest {
@@ -14,6 +16,8 @@ export interface SaveTranslationRequest {
   translatedText: string;
   sourceLang: string;
   targetLang: string;
+  type?: 'text' | 'file';
+  fileName?: string;
 }
 
 export interface TranslationResult {
@@ -114,6 +118,28 @@ export async function getTranslationHistory(getToken: () => Promise<string | nul
     return data.history || [];
   } catch (error) {
     console.error('Error fetching translation history:', error);
+    return [];
+  }
+}
+
+// Get text translation history only
+export async function getTextTranslationHistory(getToken: () => Promise<string | null>): Promise<TranslationHistoryItem[]> {
+  try {
+    const allHistory = await getTranslationHistory(getToken);
+    return allHistory.filter(item => !item.type || item.type === 'text');
+  } catch (error) {
+    console.error('Error fetching text translation history:', error);
+    return [];
+  }
+}
+
+// Get file translation history only
+export async function getFileTranslationHistory(getToken: () => Promise<string | null>): Promise<TranslationHistoryItem[]> {
+  try {
+    const allHistory = await getTranslationHistory(getToken);
+    return allHistory.filter(item => item.type === 'file');
+  } catch (error) {
+    console.error('Error fetching file translation history:', error);
     return [];
   }
 }

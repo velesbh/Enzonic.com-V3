@@ -3,7 +3,7 @@ import { saveTranslation, getTranslationHistory, recordStatistic } from '../data
 // Save a new translation
 export async function saveTranslationController(req, res) {
   try {
-    const { sourceText, translatedText, sourceLang, targetLang } = req.body;
+    const { sourceText, translatedText, sourceLang, targetLang, type = 'text', fileName } = req.body;
     const userId = req.userId;
     
     if (!sourceText || !translatedText || !sourceLang || !targetLang) {
@@ -17,7 +17,9 @@ export async function saveTranslationController(req, res) {
       sourceText, 
       translatedText, 
       sourceLang, 
-      targetLang
+      targetLang,
+      type,
+      fileName
     );
     
     // Record translation statistic
@@ -26,6 +28,7 @@ export async function saveTranslationController(req, res) {
       sourceLang,
       targetLang,
       textLength: sourceText.length,
+      type,
       timestamp: new Date().toISOString()
     }, 'translate');
     
@@ -61,7 +64,9 @@ export async function getTranslationHistoryController(req, res) {
       translatedText: item.translated_text,
       sourceLang: item.source_language,
       targetLang: item.target_language,
-      createdAt: item.created_at
+      createdAt: item.created_at,
+      type: item.type || 'text',
+      fileName: item.file_name
     }));
     
     res.json({ 

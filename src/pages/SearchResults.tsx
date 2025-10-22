@@ -42,7 +42,12 @@ import {
   User,
   Grid3X3,
   Moon,
-  Sun
+  Sun,
+  Brain,
+  Server,
+  Languages,
+  Tv,
+  HelpCircle
 } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import AppGrid from "@/components/AppGrid";
@@ -759,6 +764,124 @@ const SearchResults = () => {
                   {filters.category !== 'general' && ` in ${categories.find(c => c.id === filters.category)?.label}`}
                 </p>
               </div>
+            )}
+
+            {/* Quick Access - Explore Enzonic's Services */}
+            {results && !loading && (
+              <Card className="mb-6 border-primary/20 bg-gradient-to-br from-background to-primary/5">
+                <CardContent className="p-6">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold mb-1">Quick Access</h2>
+                    <p className="text-sm text-muted-foreground">Explore Enzonic's services</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {/* Chatbot */}
+                    <Link to="/chatbot">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-purple-500/50 bg-gradient-to-br from-purple-500/10 to-indigo-600/10 hover:from-purple-500/20 hover:to-indigo-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                              <Brain className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">Enzonic Chatbot</h3>
+                          <p className="text-xs text-muted-foreground">AI Assistant</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    
+                    {/* Emi */}
+                    <Link to="/emi">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-blue-500/50 bg-gradient-to-br from-blue-500/10 to-purple-600/10 hover:from-blue-500/20 hover:to-purple-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 group-hover:scale-110 transition-transform">
+                              <Brain className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">Enzonic Emi</h3>
+                          <p className="text-xs text-muted-foreground">AI Discord Bot</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    
+                    {/* Boxes */}
+                    <Link to="/boxes">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-green-500/50 bg-gradient-to-br from-green-500/10 to-teal-600/10 hover:from-green-500/20 hover:to-teal-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 group-hover:scale-110 transition-transform">
+                              <Server className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">Enzonic Boxes</h3>
+                          <p className="text-xs text-muted-foreground">Virtual Machines</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    
+                    {/* Translate */}
+                    <Link to="/translate">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-orange-500/50 bg-gradient-to-br from-orange-500/10 to-red-600/10 hover:from-orange-500/20 hover:to-red-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 group-hover:scale-110 transition-transform">
+                              <Languages className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">Enzonic Translate</h3>
+                          <p className="text-xs text-muted-foreground">AI Translation</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    
+                    {/* Shows */}
+                    <Link to="/shows">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-pink-500/50 bg-gradient-to-br from-pink-500/10 to-rose-600/10 hover:from-pink-500/20 hover:to-rose-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 group-hover:scale-110 transition-transform">
+                              <Tv className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">Shows</h3>
+                          <p className="text-xs text-muted-foreground">Entertainment</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    
+                    {/* About */}
+                    <Link to="/about">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-indigo-500/50 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 hover:from-indigo-500/20 hover:to-blue-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 group-hover:scale-110 transition-transform">
+                              <Info className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">About</h3>
+                          <p className="text-xs text-muted-foreground">Learn More</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    
+                    {/* Support */}
+                    <Link to="/support">
+                      <Card className="group hover:shadow-lg transition-all hover:scale-105 border-border/50 hover:border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 to-green-600/10 hover:from-emerald-500/20 hover:to-green-600/20">
+                        <CardContent className="p-4 text-center">
+                          <div className="mb-3 flex justify-center">
+                            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 group-hover:scale-110 transition-transform">
+                              <HelpCircle className="h-6 w-6 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-semibold text-sm mb-1">Support</h3>
+                          <p className="text-xs text-muted-foreground">Get Help</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
         {/* Error State */}
