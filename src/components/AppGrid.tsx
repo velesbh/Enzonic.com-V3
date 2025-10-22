@@ -1,16 +1,15 @@
 import { Link } from "react-router-dom";
-import { Home, Languages, MessageCircle, Server, Brain, Tv, Info } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const apps = [
-  { name: "Search", path: "/", icon: Home },
-  { name: "About", path: "/about", icon: Info },
-  { name: "Enzonic Emi", path: "/emi", icon: Brain },
-  { name: "Chatbot", path: "/chatbot", icon: MessageCircle },
-  { name: "Boxes", path: "/boxes", icon: Server },
-  { name: "Translate", path: "/translate", icon: Languages },
-  { name: "Enzonic Shows", path: "/shows", icon: Tv },
+  { name: "Search", path: "/", logo: "/search.png" },
+  { name: "About", path: "/about", logo: "/logo.png" },
+  { name: "Enzonic Emi", path: "/emi", logo: "/emi.png" },
+  { name: "Chatbot", path: "/chatbot", logo: "/ai.png" },
+  { name: "Boxes", path: "/boxes", logo: "/boxes.png" },
+  { name: "Translate", path: "/translate", logo: "/translate.png" },
+  { name: "Enzonic Shows", path: "/shows", logo: "/show.png" },
 ];
 
 const AppGrid = () => {
@@ -42,7 +41,6 @@ const AppGrid = () => {
 
       <div className="grid grid-cols-3 gap-4 relative z-10">
         {apps.map((app) => {
-          const Icon = app.icon;
           const isLoading = loadingApp === app.path;
           
           return (
@@ -75,21 +73,25 @@ const AppGrid = () => {
                 </div>
               )}
 
-              {/* App icon with enhanced animations */}
+              {/* App logo with rounded square styling */}
               <div className={cn(
-                "w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2 transition-all shadow-md backdrop-blur-sm relative overflow-hidden",
-                "group-hover:bg-primary/20 group-hover:shadow-lg group-hover:scale-110",
-                "group-focus:bg-primary/20 group-focus:shadow-lg",
+                "w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center mb-2 transition-all shadow-md backdrop-blur-sm relative bg-background/50",
+                "group-hover:shadow-lg group-hover:scale-110",
+                "group-focus:shadow-lg",
                 isLoading && "animate-pulse-glow"
               )}>
                 {/* Shimmer effect on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
                 
-                <Icon className={cn(
-                  "h-6 w-6 text-primary transition-all duration-300",
-                  "group-hover:scale-110 group-hover:drop-shadow-lg",
-                  isLoading && "animate-pulse"
-                )} />
+                <img 
+                  src={app.logo} 
+                  alt={app.name}
+                  className={cn(
+                    "w-full h-full object-cover transition-all duration-300",
+                    "group-hover:scale-110",
+                    isLoading && "animate-pulse"
+                  )}
+                />
               </div>
 
               {/* App name with loading state */}

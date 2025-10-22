@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { SignedIn, SignedOut, useAuth, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import ServiceUnavailable from "@/components/ServiceUnavailable";
+import ChatbotLoadingOverlay from "@/components/ChatbotLoadingOverlay";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,14 +24,22 @@ import { saveChatMessage, getChatHistory, saveChatSession, getChatSessions, dele
 import { sendChatCompletion, parseStreamingResponse, AI_MODELS, AIModel, ChatCompletionResponse } from "@/lib/aiApi";
 import { useServiceStatus, recordActivity } from "@/lib/serviceApi";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
+import { useFavicon } from "@/hooks/use-favicon";
 import { EnzonicLoading } from "@/components/ui/enzonic-loading";
 import { TypingIndicator, StreamingText, ChatBubbleLoading } from "@/components/ui/typing-indicator";
+import { 
+  StreamingCursor, 
+  GeneratingIndicator
+} from "@/components/ui/streaming-animation";
 import { useTheme } from "@/components/ThemeProvider";
 import { ModelAvatar } from "@/components/ui/model-avatar";
 import AppGrid from "@/components/AppGrid";
 
+const chatbotLogo = "/ai.png";
+
 const Chatbot = () => {
   usePageMetadata();
+  useFavicon();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -233,20 +242,14 @@ const Chatbot = () => {
     trackPageView();
   }, [isSignedIn, getToken]);
 
-  // Load chat sessions when user is signed in
+  // Load chat sessions when user is signed in (but don't load chat history)
   useEffect(() => {
     const loadSessions = async () => {
       if (isSignedIn) {
         try {
           const sessions = await getChatSessions(getToken);
           setChatSessions(sessions);
-          
-          // If we have sessions and no current session, switch to the most recent one
-          if (sessions.length > 0 && !currentSessionId) {
-            const mostRecent = sessions[0];
-            setCurrentSessionId(mostRecent.id);
-            setChatHistory(mostRecent.messages);
-          }
+          // Don't automatically switch to a session - start with new chat
         } catch (error) {
           console.error('Failed to load chat sessions:', error);
         }
@@ -254,7 +257,7 @@ const Chatbot = () => {
     };
 
     loadSessions();
-  }, [isSignedIn, getToken, currentSessionId]);
+  }, [isSignedIn, getToken]);
 
   // Update page title based on current chat
   useEffect(() => {
@@ -334,37 +337,120 @@ const Chatbot = () => {
     
     let codeBlockCounter = 0;
     
+    // Basic syntax highlighting function
+    const highlightSyntax = (code: string, lang: string): string => {
+      const escaped = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+      // Apply language-specific highlighting with darker theme colors
+      if (['javascript', 'js', 'typescript', 'ts', 'jsx', 'tsx'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|from|async|await|try|catch|new|this|super|extends|static|default|case|switch|break|continue)\b/g, '<span style="color: #ff6b9d;">$1</span>')
+          .replace(/\b(true|false|null|undefined)\b/g, '<span style="color: #c38fff;">$1</span>')
+          .replace(/\b(\d+)\b/g, '<span style="color: #ffa657;">$1</span>')
+          .replace(/(".*?"|'.*?'|`.*?`)/g, '<span style="color: #a5ff90;">$1</span>')
+          .replace(/(\/\/.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+          .replace(/(\/\*[\s\S]*?\*\/)/g, '<span style="color: #6b7280; font-style: italic;">$1</span>');
+      } else if (['python', 'py'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/\b(def|class|if|elif|else|for|while|return|import|from|as|try|except|finally|with|lambda|yield|async|await|pass|break|continue|raise|assert)\b/g, '<span style="color: #ff6b9d;">$1</span>')
+          .replace(/\b(True|False|None)\b/g, '<span style="color: #c38fff;">$1</span>')
+          .replace(/\b(\d+)\b/g, '<span style="color: #ffa657;">$1</span>')
+          .replace(/(".*?"|'.*?'|"""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')/g, '<span style="color: #a5ff90;">$1</span>')
+          .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>');
+      } else if (['html', 'xml'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/(&lt;\/?)([\w-]+)/g, '$1<span style="color: #ff6b9d;">$2</span>')
+          .replace(/([\w-]+)(?==)/g, '<span style="color: #ffa657;">$1</span>')
+          .replace(/=(".*?"|'.*?')/g, '=<span style="color: #a5ff90;">$1</span>');
+      } else if (['css', 'scss', 'sass'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/([.#][\w-]+)/g, '<span style="color: #ffa657;">$1</span>')
+          .replace(/\b([\w-]+)(?=:)/g, '<span style="color: #ff6b9d;">$1</span>')
+          .replace(/(:)(\s*)([^;{]+)/g, '$1$2<span style="color: #a5ff90;">$3</span>');
+      } else if (['json'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/("[\w-]+")(:)/g, '<span style="color: #ffa657;">$1</span>$2')
+          .replace(/:\s*(".*?")/g, ': <span style="color: #a5ff90;">$1</span>')
+          .replace(/\b(true|false|null)\b/g, '<span style="color: #c38fff;">$1</span>')
+          .replace(/\b(\d+)\b/g, '<span style="color: #ffa657;">$1</span>');
+      } else if (['bash', 'sh', 'shell'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/\b(if|then|else|elif|fi|for|while|do|done|case|esac|function|return|echo|export|source|cd|ls|mkdir|rm|cp|mv|cat|grep|sed|awk)\b/g, '<span style="color: #ff6b9d;">$1</span>')
+          .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+          .replace(/(".*?"|'.*?')/g, '<span style="color: #a5ff90;">$1</span>');
+      } else if (['sql'].includes(lang.toLowerCase())) {
+        return escaped
+          .replace(/\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|CREATE|TABLE|INDEX|JOIN|LEFT|RIGHT|INNER|OUTER|ON|AS|AND|OR|NOT|NULL|PRIMARY|KEY|FOREIGN|REFERENCES|GROUP|BY|ORDER|LIMIT|OFFSET)\b/gi, '<span style="color: #ff6b9d;">$1</span>')
+          .replace(/(".*?"|'.*?')/g, '<span style="color: #a5ff90;">$1</span>')
+          .replace(/\b(\d+)\b/g, '<span style="color: #ffa657;">$1</span>');
+      }
+      
+      return escaped;
+    };
+    
     return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
-      .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold mt-4 mb-2">$1</h2>')
-      .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold mt-4 mb-2">$1</h1>')
+      // Handle code blocks first (before other formatting)
       .replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, language, code) => {
         const blockId = `code-block-${codeBlockCounter++}`;
-        const lang = language || 'text';
-        return `<div class="code-block-container relative bg-muted/50 rounded-lg my-3 border">
-          <div class="flex items-center justify-between px-3 py-2 bg-muted/30 border-b border-border rounded-t-lg">
-            <span class="text-xs font-medium text-muted-foreground uppercase">${lang}</span>
-            <div class="flex items-center gap-1">
-              <button onclick="copyCodeBlock('${blockId}')" class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-background/80 hover:bg-background border rounded text-foreground transition-colors">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                Copy
-              </button>
-              <button onclick="downloadCodeBlock('${blockId}', '${lang}')" class="inline-flex items-center gap-1 px-2 py-1 text-xs bg-background/80 hover:bg-background border rounded text-foreground transition-colors">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
-                </svg>
-                Download
-              </button>
-            </div>
+        const lang = language || 'plaintext';
+        
+        // Apply syntax highlighting
+        const highlightedCode = highlightSyntax(code.trim(), lang);
+        
+        // Split highlighted code into lines
+        const lines = highlightedCode.split('\n');
+        const maxLineNum = lines.length.toString().length;
+        
+        // Build code with line numbers - better styling
+        const numberedCode = lines.map((line, i) => {
+          const num = (i + 1).toString().padStart(maxLineNum, ' ');
+          return `<div style="display: table-row;"><span style="display: table-cell; padding: 0.25rem 1.25rem 0.25rem 0.75rem; user-select: none; color: #52525b; text-align: right; width: 1%; white-space: nowrap; font-variant-numeric: tabular-nums; border-right: 1px solid #27272a; background: #0a0a0a;">${num}</span><span style="display: table-cell; padding: 0.25rem 1rem 0.25rem 1.25rem;">${line || ' '}</span></div>`;
+        }).join('');
+        
+        return `<div class="code-block-wrapper" style="position: relative; background: #000; border: 1px solid #1f2937; border-radius: 6px; margin: 1rem 0; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
+          <div style="position: absolute; top: 0.75rem; right: 0.75rem; z-index: 10; display: flex; gap: 0.5rem;">
+            <button onclick="copyCodeBlock('${blockId}')" title="Copy code" class="code-btn-${blockId}" style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; font-size: 11px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #9ca3af; border-radius: 4px; cursor: pointer; transition: all 0.15s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 500;" onmouseover="this.style.background='#262626'; this.style.borderColor='#404040'; this.style.color='#e5e7eb';" onmouseout="this.style.background='#1a1a1a'; this.style.borderColor='#2a2a2a'; this.style.color='#9ca3af';">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy
+            </button>
+            <button onclick="downloadCodeBlock('${blockId}', '${lang}')" title="Download file" style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; font-size: 11px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #9ca3af; border-radius: 4px; cursor: pointer; transition: all 0.15s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 500;" onmouseover="this.style.background='#262626'; this.style.borderColor='#404040'; this.style.color='#e5e7eb';" onmouseout="this.style.background='#1a1a1a'; this.style.borderColor='#2a2a2a'; this.style.color='#9ca3af';">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Save
+            </button>
           </div>
-          <pre class="overflow-x-auto p-3"><code id="${blockId}" class="language-${lang} text-sm">${code.trim()}</code></pre>
+          <div style="overflow-x: auto; max-height: 500px; background: #000; padding-top: 3rem; border-top: 1px solid #1f2937;">
+            <div id="${blockId}" data-language="${lang}" style="margin: 0; padding: 1rem 0; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6; color: #e5e7eb; background: #000; display: table; width: 100%; border-spacing: 0;">${numberedCode}</div>
+          </div>
         </div>`;
       })
-      .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 rounded text-sm">$1</code>')
+      // Inline code with dark theme
+      .replace(/`([^`]+)`/g, '<code style="background: #1a1a1a; color: #ffa657; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.9em; font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace; border: 1px solid #2a2a2a;">$1</code>')
+      // Headers
+      .replace(/^### (.*$)/gm, '<h3 style="font-size: 1.125rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #fff;">$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2 style="font-size: 1.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #fff;">$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1 style="font-size: 1.5rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 1rem; color: #fff;">$1</h1>')
+      // Bold and italic
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 700; color: #fff;">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em style="font-style: italic;">$1</em>')
+      // Lists - improved
+      .replace(/^\* (.*$)/gm, '<div style="margin-left: 1rem; margin-bottom: 0.5rem;">• $1</div>')
+      .replace(/^- (.*$)/gm, '<div style="margin-left: 1rem; margin-bottom: 0.5rem;">• $1</div>')
+      .replace(/^\d+\. (.*$)/gm, '<div style="margin-left: 1rem; margin-bottom: 0.5rem;">$1</div>')
+      // Line breaks - improved spacing
+      .replace(/\n\n\n+/g, '<div style="margin-bottom: 1rem;"></div>')
+      .replace(/\n\n/g, '<div style="margin-bottom: 0.75rem;"></div>')
       .replace(/\n/g, '<br>');
   };
 
@@ -401,14 +487,46 @@ const Chatbot = () => {
     }));
   };
 
-  // Copy code block function
+  // Copy code block function with enhanced feedback
   const copyCodeBlock = async (blockId: string) => {
     try {
       const codeElement = document.getElementById(blockId);
+      const button = document.querySelector(`.code-btn-${blockId}`) as HTMLButtonElement;
+      
       if (codeElement) {
-        await navigator.clipboard.writeText(codeElement.textContent || '');
+        // Extract text without line numbers
+        const codeText = codeElement.textContent || '';
+        // Remove line numbers (format: "  1  code" or " 10  code")
+        const cleanCode = codeText.split('\n').map(line => {
+          // Remove line number and spacing at the start
+          return line.replace(/^\s*\d+\s{2,}/, '');
+        }).join('\n');
+        
+        await navigator.clipboard.writeText(cleanCode);
+        
+        // Update button to show success
+        if (button) {
+          const originalHTML = button.innerHTML;
+          button.innerHTML = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Copied!
+          `;
+          button.style.background = '#16a34a';
+          button.style.borderColor = '#16a34a';
+          button.style.color = '#fff';
+          
+          setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.style.background = '#1a1a1a';
+            button.style.borderColor = '#2a2a2a';
+            button.style.color = '#9ca3af';
+          }, 2000);
+        }
+        
         toast({
-          description: "Code copied to clipboard",
+          description: "✓ Code copied to clipboard",
           duration: 2000,
         });
       }
@@ -421,16 +539,23 @@ const Chatbot = () => {
     }
   };
 
-  // Download code block function
+  // Download code block function with clean code
   const downloadCodeBlock = (blockId: string, language: string) => {
     try {
       const codeElement = document.getElementById(blockId);
       if (codeElement) {
-        const code = codeElement.textContent || '';
+        // Extract text without line numbers
+        const codeText = codeElement.textContent || '';
+        // Remove line numbers (format: "  1  code" or " 10  code")
+        const cleanCode = codeText.split('\n').map(line => {
+          // Remove line number and spacing at the start
+          return line.replace(/^\s*\d+\s{2,}/, '');
+        }).join('\n');
+        
         const fileExtension = getFileExtension(language);
         const filename = `code.${fileExtension}`;
         
-        const blob = new Blob([code], { type: 'text/plain' });
+        const blob = new Blob([cleanCode], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -441,7 +566,7 @@ const Chatbot = () => {
         URL.revokeObjectURL(url);
         
         toast({
-          description: `Code downloaded as ${filename}`,
+          description: `✓ Downloaded as ${filename}`,
           duration: 2000,
         });
       }
@@ -747,56 +872,8 @@ const Chatbot = () => {
     }
   };
 
-  // Load chat sessions and history on mount
-  useEffect(() => {
-    if (isSignedIn) {
-      const loadData = async () => {
-        try {
-          const [sessions, messages] = await Promise.all([
-            getChatSessions(getToken),
-            getChatHistory(getToken)
-          ]);
-          
-          setChatSessions(sessions);
-          
-          if (currentSessionId) {
-            // Load specific session
-            const session = sessions.find(s => s.id === currentSessionId);
-            if (session) {
-              setChatHistory(session.messages);
-              setCurrentSessionName(session.name);
-            }
-          } else if (messages.length > 0) {
-            // Load recent messages for backward compatibility
-            // Convert ChatHistoryItem[] to ChatMessage[]
-            const convertedMessages: ChatMessage[] = [];
-            messages.forEach((item, index) => {
-              // Add user message
-              convertedMessages.push({
-                id: `user-${item.id}`,
-                content: item.userMessage,
-                role: 'user',
-                timestamp: item.createdAt
-              });
-              // Add assistant message
-              convertedMessages.push({
-                id: `assistant-${item.id}`,
-                content: item.assistantMessage,
-                role: 'assistant',
-                timestamp: item.createdAt,
-                model: item.model
-              });
-            });
-            setChatHistory(convertedMessages);
-          }
-        } catch (error) {
-          console.error('Failed to load chat data:', error);
-        }
-      };
-
-      loadData();
-    }
-  }, [isSignedIn, getToken, currentSessionId]);
+  // Don't load chat history automatically - only load when user clicks a session
+  // This prevents flashing of old chats on page reload
 
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading || isStreaming) return;
@@ -1000,8 +1077,9 @@ const Chatbot = () => {
     });
   };
 
-  const switchToSession = (session: ChatSession) => {
+  const switchToSession = async (session: ChatSession) => {
     setCurrentSessionId(session.id);
+    // Load the chat messages only when clicked
     setChatHistory(session.messages);
     setError(null);
   };
@@ -1016,7 +1094,7 @@ const Chatbot = () => {
 
   // Show loading screen while checking service status
   if (serviceLoading) {
-    return <EnzonicLoading size="xl" message="Initializing Enzonic AI..." variant="sparkle" />;
+    return <ChatbotLoadingOverlay isLoading={true} />;
   }
 
   // Only show service unavailable if explicitly disabled (default to available)
@@ -1038,9 +1116,11 @@ const Chatbot = () => {
               <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-primary-foreground" />
-                    </div>
+                    <img 
+                      src={chatbotLogo} 
+                      alt="Enzonic AI" 
+                      className="w-8 h-8 rounded-lg object-cover"
+                    />
                     <span className="font-semibold text-foreground">Enzonic AI</span>
                   </div>
                   <Button
@@ -1434,10 +1514,13 @@ const Chatbot = () => {
                   {/* Main content area */}
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center px-6 max-w-2xl mx-auto">
-                      {/* Simple logo and title */}
+                      {/* Model logo */}
                       <div className="mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-6">
-                          <Sparkles className="w-8 h-8 text-primary-foreground" />
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mb-6 overflow-hidden">
+                          <ModelAvatar 
+                            model={models.find((model) => model.id === selectedModel)} 
+                            size="lg" 
+                          />
                         </div>
                         
                         <h1 className="text-4xl font-bold mb-4 text-foreground">
@@ -1445,7 +1528,7 @@ const Chatbot = () => {
                         </h1>
                         
                         <p className="text-muted-foreground mb-8">
-                          Start chatting with Enzonic AI
+                          Start chatting with {models.find((model) => model.id === selectedModel)?.name || 'Enzonic AI'}
                         </p>
                       </div>
 
@@ -1694,7 +1777,7 @@ const Chatbot = () => {
                             );
                           })()}
                           
-                          <div className="inline-block w-2 h-4 bg-primary/60 animate-pulse ml-1"></div>
+                          <StreamingCursor />
                         </div>
                       </div>
                     )}
@@ -1713,13 +1796,7 @@ const Chatbot = () => {
                               {models.find(m => m.id === selectedModel)?.name}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex gap-1">
-                              <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse"></div>
-                              <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse delay-75"></div>
-                              <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse delay-150"></div>
-                            </div>
-                          </div>
+                          <GeneratingIndicator message="Generating response" />
                         </div>
                       </div>
                     )}
@@ -1768,13 +1845,6 @@ const Chatbot = () => {
                       </div>
                     )}
                   </div>
-                  
-                  {/* Typing indicator when AI is responding */}
-                  {(isStreaming || isLoading) && (
-                    <div className="px-6 py-4">
-                      <ChatBubbleLoading variant="ai" size="md" />
-                    </div>
-                  )}
                   
                   <div ref={messagesEndRef} />
                 </div>

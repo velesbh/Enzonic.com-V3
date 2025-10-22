@@ -9,11 +9,12 @@ import {
   getSystemHealth,
   refreshAllData
 } from '@/lib/adminApi';
-import { getRealtimeData } from '@/lib/serviceApi';
+import { getRealtimeData, getAllServicesStatus } from '@/lib/serviceApi';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PrivacyRightsManagement from "@/components/PrivacyRightsManagement";
+import ServiceLoadingOverlay from "@/components/ServiceLoadingOverlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,6 +117,8 @@ const Admin = () => {
   const [saving, setSaving] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [adminToken, setAdminToken] = useState<string>('');
+  const [serviceStatuses, setServiceStatuses] = useState<any>({});
+  const [checkingServiceStatus, setCheckingServiceStatus] = useState(false);
   const { toast } = useToast();
 
   // Auto-refresh interval
@@ -242,6 +245,24 @@ const Admin = () => {
     }
   };
 
+  // Check all service availability
+  const checkServiceStatuses = async () => {
+    setCheckingServiceStatus(true);
+    try {
+      const statuses = await getAllServicesStatus();
+      setServiceStatuses(statuses);
+    } catch (error) {
+      console.error('Error checking service statuses:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check service availability",
+        variant: "destructive",
+      });
+    } finally {
+      setCheckingServiceStatus(false);
+    }
+  };
+
   const handleSaveEnvironment = async () => {
     setSaving(true);
     setActionLoading("Saving environment variables...");
@@ -355,6 +376,9 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Service status checking overlay */}
+      <ServiceLoadingOverlay isLoading={checkingServiceStatus} />
+      
       <Navbar />
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4">
@@ -375,6 +399,14 @@ const Admin = () => {
                     Auto-refresh
                   </Label>
                 </div>
+                <Button onClick={checkServiceStatuses} disabled={checkingServiceStatus} variant="outline" size="sm">
+                  {checkingServiceStatus ? (
+                    <EnzonicLoading size="sm" variant="minimal" message="" showLogo={false} />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  {checkingServiceStatus ? 'Checking...' : 'Check Services'}
+                </Button>
                 <Button onClick={refreshStats} disabled={refreshing} variant="outline">
                   {refreshing ? (
                     <EnzonicLoading size="sm" variant="minimal" message="" showLogo={false} />
@@ -713,66 +745,92 @@ const Admin = () => {
 
               <TabsContent value="services" className="space-y-6">
                 <div className="grid gap-6">
-                  {services.map((service) => (
-                    <Card key={service.id}>
-                      <CardHeader>
-                        <div className="flex items-center space-x-4">
-                          <div 
-                            className="w-12 h-12 rounded-lg flex items-center justify-center text-white"
-                            style={{ backgroundColor: service.color }}
-                          >
-                            {service.icon === 'Languages' && <Languages className="h-6 w-6" />}
-                            {service.icon === 'Package' && <Package className="h-6 w-6" />}
-                            {service.icon === 'Calculator' && <Calculator className="h-6 w-6" />}
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="flex items-center space-x-2">
-                              <span>{service.name}</span>
-                              <Badge variant={service.enabled ? "default" : "secondary"}>
-                                {service.enabled ? "Enabled" : "Disabled"}
-                              </Badge>
-                              {realtimeData?.services[service.id] && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  {realtimeData.services[service.id].enabled ? 'Live' : 'Offline'}
+                  {services.map((service) => {
+                    const statusInfo = serviceStatuses[service.id];
+                    const isAvailable = statusInfo?.available;
+                    
+                    return (
+                      <Card key={service.id}>
+                        <CardHeader>
+                          <div className="flex items-center space-x-4">
+                            <div 
+                              className="w-12 h-12 rounded-lg flex items-center justify-center text-white"
+                              style={{ backgroundColor: service.color }}
+                            >
+                              {service.icon === 'Languages' && <Languages className="h-6 w-6" />}
+                              {service.icon === 'Package' && <Package className="h-6 w-6" />}
+                              {service.icon === 'Calculator' && <Calculator className="h-6 w-6" />}
+                            </div>
+                            <div className="flex-1">
+                              <CardTitle className="flex items-center space-x-2">
+                                <span>{service.name}</span>
+                                <Badge variant={service.enabled ? "default" : "secondary"}>
+                                  {service.enabled ? "Enabled" : "Disabled"}
                                 </Badge>
-                              )}
-                            </CardTitle>
-                            <CardDescription>{service.description}</CardDescription>
+                                {isAvailable !== undefined && (
+                                  <Badge variant={isAvailable ? "default" : "destructive"} className="text-xs">
+                                    {isAvailable ? (
+                                      <>
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Available
+                                      </>
+                                    ) : (
+                                      <>
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        Unavailable
+                                      </>
+                                    )}
+                                  </Badge>
+                                )}
+                                {realtimeData?.services[service.id] && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    {realtimeData.services[service.id].enabled ? 'Live' : 'Offline'}
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <CardDescription>{service.description}</CardDescription>
+                            </div>
                           </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <Label className="text-base font-medium">Service Status</Label>
-                            <p className="text-sm text-muted-foreground">
-                              Enable or disable this service for users
-                            </p>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <Label className="text-base font-medium">Service Status</Label>
+                              <p className="text-sm text-muted-foreground">
+                                Enable or disable this service for users
+                              </p>
+                            </div>
+                            <Switch
+                              checked={service.enabled}
+                              onCheckedChange={(checked) => handleServiceToggle(service.id, checked)}
+                            />
                           </div>
-                          <Switch
-                            checked={service.enabled}
-                            onCheckedChange={(checked) => handleServiceToggle(service.id, checked)}
-                          />
-                        </div>
 
-                        <div className="pt-4 border-t">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">Endpoint:</span>
-                              <span className="ml-2 font-mono">{service.endpoint}</span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Status:</span>
-                              <span className={`ml-2 ${service.enabled ? 'text-green-600' : 'text-red-600'}`}>
-                                {service.enabled ? 'Active' : 'Disabled'}
-                              </span>
+                          <div className="pt-4 border-t">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Endpoint:</span>
+                                <span className="ml-2 font-mono">{service.endpoint}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Status:</span>
+                                <span className={`ml-2 ${service.enabled ? 'text-green-600' : 'text-red-600'}`}>
+                                  {service.enabled ? 'Active' : 'Disabled'}
+                                </span>
+                              </div>
+                              {statusInfo?.responseTime && (
+                                <div>
+                                  <span className="text-muted-foreground">Response Time:</span>
+                                  <span className="ml-2 font-mono">{statusInfo.responseTime}ms</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </TabsContent>
 

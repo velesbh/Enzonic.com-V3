@@ -38,7 +38,9 @@ const Newsletter = () => {
 
           <div className="space-y-2 sm:space-y-3 md:space-y-4">
             <div className="flex items-center justify-center gap-1.5 sm:gap-2">
-              <img src={logo} alt="Enzonic Logo" className="h-5 sm:h-6 w-5 sm:w-6" />
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-xl overflow-hidden flex items-center justify-center bg-background/50 flex-shrink-0">
+                <img src={logo} alt="Enzonic Logo" className="w-full h-full object-cover" />
+              </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Stay Updated</h2>
             </div>
             <p className="text-sm sm:text-base md:text-lg text-muted-foreground px-2 sm:px-0">Subscribe to our newsletter for the latest updates from Enzonic</p>

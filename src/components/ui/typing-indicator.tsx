@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 
 interface TypingIndicatorProps {
   isTyping?: boolean;
   size?: "sm" | "md" | "lg";
-  variant?: "dots" | "bars" | "wave" | "pulse";
   className?: string;
   message?: string;
 }
@@ -12,115 +11,25 @@ interface TypingIndicatorProps {
 export const TypingIndicator = ({
   isTyping = true,
   size = "md",
-  variant = "dots",
   className,
   message = "Enzonic is typing"
 }: TypingIndicatorProps) => {
   const sizeClasses = {
     sm: {
       container: "text-xs",
-      dot: "w-1.5 h-1.5",
       bar: "w-1 h-3",
-      wave: "w-1 h-4"
     },
     md: {
       container: "text-sm",
-      dot: "w-2 h-2",
       bar: "w-1.5 h-4",
-      wave: "w-1.5 h-5"
     },
     lg: {
       container: "text-base",
-      dot: "w-2.5 h-2.5",
       bar: "w-2 h-5",
-      wave: "w-2 h-6"
     }
   };
 
   if (!isTyping) return null;
-
-  const renderIndicator = () => {
-    switch (variant) {
-      case "dots":
-        return (
-          <div className="flex space-x-1">
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "bg-primary rounded-full animate-bounce",
-                  sizeClasses[size].dot
-                )}
-                style={{
-                  animationDelay: `${i * 0.2}s`,
-                  animationDuration: "0.8s"
-                }}
-              />
-            ))}
-          </div>
-        );
-
-      case "bars":
-        return (
-          <div className="flex space-x-1 items-end">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "bg-primary rounded-sm animate-wave",
-                  sizeClasses[size].bar
-                )}
-                style={{
-                  animationDelay: `${i * 0.1}s`,
-                  animationDuration: "0.6s"
-                }}
-              />
-            ))}
-          </div>
-        );
-
-      case "wave":
-        return (
-          <div className="flex space-x-0.5 items-end">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "bg-primary rounded-full",
-                  sizeClasses[size].wave
-                )}
-                style={{
-                  animation: `wave 1.2s ease-in-out infinite`,
-                  animationDelay: `${i * 0.1}s`,
-                  transformOrigin: "center bottom"
-                }}
-              />
-            ))}
-          </div>
-        );
-
-      case "pulse":
-        return (
-          <div className="flex space-x-2 items-center">
-            <div className={cn(
-              "bg-primary rounded-full animate-pulse",
-              sizeClasses[size].dot
-            )} />
-            <div className={cn(
-              "bg-primary/60 rounded-full animate-pulse",
-              sizeClasses[size].dot
-            )} style={{ animationDelay: "0.2s" }} />
-            <div className={cn(
-              "bg-primary/40 rounded-full animate-pulse",
-              sizeClasses[size].dot
-            )} style={{ animationDelay: "0.4s" }} />
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
 
   return (
     <div className={cn(
@@ -128,13 +37,27 @@ export const TypingIndicator = ({
       sizeClasses[size].container,
       className
     )}>
-      {renderIndicator()}
-      <span className="text-muted-foreground font-medium">{message}...</span>
+      <div className="flex space-x-1 items-end">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              "bg-primary rounded-sm animate-bar-wave",
+              sizeClasses[size].bar
+            )}
+            style={{
+              animationDelay: `${i * 0.1}s`,
+            }}
+          />
+        ))}
+      </div>
+      {message && (
+        <span className="text-muted-foreground font-medium">{message}...</span>
+      )}
     </div>
   );
 };
 
-// Enhanced typing effect with text animation
 interface TypewriterProps {
   text: string;
   speed?: number;
@@ -150,11 +73,10 @@ export const Typewriter = ({
   className,
   onComplete
 }: TypewriterProps) => {
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showCursorBlink, setShowCursorBlink] = useState(true);
+  const [displayText, setDisplayText] = React.useState("");
+  const [currentIndex, setCurrentIndex] = React.useState(0);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (currentIndex < text.length) {
       const timeout = setTimeout(() => {
         setDisplayText(prev => prev + text[currentIndex]);
@@ -167,28 +89,18 @@ export const Typewriter = ({
     }
   }, [currentIndex, text, speed, onComplete]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setShowCursorBlink(prev => !prev);
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <span className={cn("font-mono", className)}>
       {displayText}
       {showCursor && (
         <span className={cn(
-          "inline-block w-0.5 h-5 bg-primary ml-1 transition-opacity duration-100",
-          showCursorBlink ? "opacity-100" : "opacity-0"
+          "inline-block w-0.5 h-5 bg-primary ml-1 animate-cursor-blink"
         )} />
       )}
     </span>
   );
 };
 
-// Streaming text component for AI responses
 interface StreamingTextProps {
   text: string;
   isStreaming: boolean;
@@ -204,13 +116,12 @@ export const StreamingText = ({
     <div className={cn("relative", className)}>
       <span className="whitespace-pre-wrap">{text}</span>
       {isStreaming && (
-        <span className="inline-block w-1 h-5 bg-primary ml-1 animate-pulse" />
+        <span className="inline-block w-1 h-5 bg-primary ml-1 animate-cursor-blink" />
       )}
     </div>
   );
 };
 
-// Chat bubble with typing animation
 interface ChatBubbleLoadingProps {
   variant?: "user" | "ai";
   size?: "sm" | "md" | "lg";
@@ -243,7 +154,6 @@ export const ChatBubbleLoading = ({
       )}>
         <TypingIndicator
           size={size}
-          variant="dots"
           message=""
         />
       </div>

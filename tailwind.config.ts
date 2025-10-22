@@ -80,10 +80,99 @@ export default {
             height: "0",
           },
         },
+        "slide-right": {
+          "0%": {
+            transform: "translateX(0)",
+          },
+          "100%": {
+            transform: "translateX(100%)",
+          },
+        },
+        "slide-down": {
+          "0%": {
+            transform: "translateY(-100%)",
+          },
+          "100%": {
+            transform: "translateY(100%)",
+          },
+        },
+        "float": {
+          "0%, 100%": {
+            transform: "translateY(0px)",
+          },
+          "50%": {
+            transform: "translateY(-10px)",
+          },
+        },
+        "spin-slow": {
+          "0%": {
+            transform: "rotate(0deg)",
+          },
+          "100%": {
+            transform: "rotate(360deg)",
+          },
+        },
+        "spin-reverse": {
+          "0%": {
+            transform: "rotate(360deg)",
+          },
+          "100%": {
+            transform: "rotate(0deg)",
+          },
+        },
+        "bounce-wave": {
+          "0%, 100%": {
+            transform: "translateY(0)",
+            opacity: "1",
+          },
+          "50%": {
+            transform: "translateY(-10px)",
+            opacity: "0.7",
+          },
+        },
+        "fade-in-out": {
+          "0%, 100%": {
+            opacity: "0.5",
+          },
+          "50%": {
+            opacity: "1",
+          },
+        },
+        "gradient": {
+          "0%, 100%": {
+            backgroundPosition: "0% 50%",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+          },
+        },
+        "draw-path": {
+          "0%": {
+            strokeDashoffset: "1000",
+          },
+          "100%": {
+            strokeDashoffset: "0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "slide-right": "slide-right 3s linear infinite",
+        "slide-down": "slide-down 4s linear infinite",
+        "float": "float 3s ease-in-out infinite",
+        "spin-slow": "spin-slow 2s linear infinite",
+        "spin-reverse": "spin-reverse 3s linear infinite",
+        "bounce-wave": "bounce-wave 1s ease-in-out infinite",
+        "fade-in-out": "fade-in-out 2s ease-in-out infinite",
+        "gradient": "gradient 3s ease infinite",
+        "draw-path-1": "draw-path 2s ease-out infinite",
+        "draw-path-2": "draw-path 2.5s ease-out 0.3s infinite",
+        "draw-path-3": "draw-path 3s ease-out 0.6s infinite",
+        "draw-path-4": "draw-path 2.8s ease-out 0.9s infinite",
+        "draw-path-5": "draw-path 2.6s ease-out 1.2s infinite",
+        "draw-path-6": "draw-path 1.8s ease-out 0.4s infinite",
+        "draw-path-7": "draw-path 2.2s ease-out 0.8s infinite",
       },
     },
   },

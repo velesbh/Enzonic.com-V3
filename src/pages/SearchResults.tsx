@@ -6,6 +6,7 @@ import SearXNGAnswers from "@/components/SearXNGAnswers";
 import InstantAnswers from "@/components/InstantAnswers";
 import OpenStreetMap from "@/components/OpenStreetMap";
 import MediaCarousel from "@/components/MediaCarousel";
+import SearchLoadingOverlay from "@/components/SearchLoadingOverlay";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,6 +67,7 @@ const SearchResults = () => {
   const resolvedTheme = useResolvedTheme();
   const [results, setResults] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]); // Autocomplete suggestions
   const [didYouMeanSuggestions, setDidYouMeanSuggestions] = useState<string[]>([]); // "Did you mean" suggestions
@@ -112,6 +114,9 @@ const SearchResults = () => {
     setSearchHistory(loadSearchHistory());
   }, []);
 
+  // Keep a controller ref to cancel background progressive loads
+  const progressiveControllerRef = useRef<AbortController | null>(null);
+
   const performSearch = async (query: string, page: number = 1) => {
     if (!query.trim()) return;
 
@@ -130,6 +135,16 @@ const SearchResults = () => {
     newSearchParams.set('page', page.toString());
     setSearchParams(newSearchParams);
 
+    // Cancel any previous progressive loads
+    if (progressiveControllerRef.current) {
+      progressiveControllerRef.current.abort();
+      progressiveControllerRef.current = null;
+    }
+
+    // New abort controller used for background page fetching
+    const progressiveController = new AbortController();
+    progressiveControllerRef.current = progressiveController;
+
     try {
       // Perform both general search and Wikipedia search in parallel (Wikipedia only on page 1)
       const searchPromises = [
@@ -140,7 +155,8 @@ const SearchResults = () => {
           language: filters.language === 'auto' ? undefined : filters.language,
           categories: filters.category,
           time_range: filters.timeRange === 'anytime' ? undefined : filters.timeRange as 'day' | 'week' | 'month' | 'year',
-          engines: filters.engines || undefined
+          engines: filters.engines || undefined,
+          signal: progressiveController.signal,
         })
       ];
 
@@ -188,20 +204,74 @@ const SearchResults = () => {
       }
 
       const results = await Promise.allSettled(searchPromises);
-      
+
       if (results[0].status === 'fulfilled') {
         const searchData = results[0].value;
-        setResults(searchData);
         
-        // Estimate total pages based on number of results (assuming ~10 results per page)
-        const resultsPerPage = 10;
-        const estimatedTotalPages = Math.max(1, Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10)); // At least 1 page, cap at 10 pages
-        setTotalPages(estimatedTotalPages);
+        // Only set results if we actually got data
+        if (searchData && searchData.results) {
+          setResults(searchData);
+
+          // Estimate total pages based on number of results (SearXNG returns ~20 results per page)
+          const resultsPerPage = 20;
+          const estimatedTotalPages = Math.max(1, Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10)); // At least 1 page, cap at 10 pages
+          setTotalPages(estimatedTotalPages);
+
+          // Progressive background fetch - only fetch 1 additional page (total 2 pages = 40 results)
+          const pagesToFetch = Math.min(estimatedTotalPages, 2);
+          if (pagesToFetch > 1) {
+            setLoadingMore(true);
+            // run background fetches sequentially to allow fast incremental rendering and lower API pressure
+            (async () => {
+              try {
+                for (let p = 2; p <= pagesToFetch; p++) {
+                  // abort if controller is gone
+                  if (!progressiveControllerRef.current) break;
+                  try {
+                    const pageData = await searchWeb({
+                      q: query,
+                      pageno: p,
+                      safesearch: filters.safesearch as 0 | 1 | 2,
+                      language: filters.language === 'auto' ? undefined : filters.language,
+                      categories: filters.category,
+                      time_range: filters.timeRange === 'anytime' ? undefined : filters.timeRange as 'day' | 'week' | 'month' | 'year',
+                      engines: filters.engines || undefined,
+                      signal: progressiveController.signal,
+                    });
+
+                    // Append new results while deduplicating by url
+                    setResults((prev) => {
+                      if (!prev) return pageData;
+                      const existingUrls = new Set(prev.results.map(r => r.url));
+                      const newItems = pageData.results.filter(r => !existingUrls.has(r.url));
+                      return {
+                        ...prev,
+                        results: [...prev.results, ...newItems],
+                        number_of_results: prev.number_of_results + newItems.length,
+                      } as SearchResponse;
+                    });
+                  } catch (err) {
+                    // If aborted, stop background fetching
+                    if ((err as any)?.name === 'AbortError') break;
+                    console.warn('Background page fetch failed for page', p, err);
+                  }
+                }
+              } finally {
+                setLoadingMore(false);
+              }
+            })();
+          }
+        } else {
+          // No results found, but not necessarily an error
+          setResults({ query, number_of_results: 0, results: [], answers: [], corrections: [], infoboxes: [], suggestions: [], unresponsive_engines: [] });
+        }
       } else {
-        throw results[0].reason;
+        // Only show error if it's a real network/API error, not just empty results
+        console.warn('Search request failed:', results[0].reason);
+        setResults({ query, number_of_results: 0, results: [], answers: [], corrections: [], infoboxes: [], suggestions: [], unresponsive_engines: [] });
       }
       
-      // Handle Wikipedia, images, and videos results only if we searched for them (page 1)
+  // Handle Wikipedia, images, and videos results only if we searched for them (page 1)
       if (page === 1) {
         // Wikipedia results (index 1)
         if (results[1] && results[1].status === 'fulfilled' && results[1].value) {
@@ -287,6 +357,12 @@ const SearchResults = () => {
       }
     });
     
+    // cancel any background progressive loads before performing filter search
+    if (progressiveControllerRef.current) {
+      progressiveControllerRef.current.abort();
+      progressiveControllerRef.current = null;
+    }
+
     if (searchQuery.trim()) {
       params.set('q', searchQuery.trim());
       setSearchParams(params);
@@ -339,13 +415,19 @@ const SearchResults = () => {
         
         if (results[0].status === 'fulfilled') {
           const searchData = results[0].value;
-          setResults(searchData);
           
-          const resultsPerPage = 10;
-          const estimatedTotalPages = Math.max(1, Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10));
-          setTotalPages(estimatedTotalPages);
+          if (searchData && searchData.results) {
+            setResults(searchData);
+            
+            const resultsPerPage = 20;
+            const estimatedTotalPages = Math.max(1, Math.min(Math.ceil(searchData.number_of_results / resultsPerPage), 10));
+            setTotalPages(estimatedTotalPages);
+          } else {
+            setResults({ query: searchQuery.trim(), number_of_results: 0, results: [], answers: [], corrections: [], infoboxes: [], suggestions: [], unresponsive_engines: [] });
+          }
         } else {
-          throw results[0].reason;
+          console.warn('Filter search failed:', results[0].reason);
+          setResults({ query: searchQuery.trim(), number_of_results: 0, results: [], answers: [], corrections: [], infoboxes: [], suggestions: [], unresponsive_engines: [] });
         }
         
         if (results[1].status === 'fulfilled' && results[1].value) {
@@ -378,6 +460,16 @@ const SearchResults = () => {
       }
     }
   };
+
+  // Cleanup on unmount - abort any in-progress progressive fetches
+  useEffect(() => {
+    return () => {
+      if (progressiveControllerRef.current) {
+        progressiveControllerRef.current.abort();
+        progressiveControllerRef.current = null;
+      }
+    };
+  }, []);
 
   // Detect language from search query text
   const detectLanguage = (text: string): string => {
@@ -564,170 +656,35 @@ const SearchResults = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-hidden bg-gradient-to-br from-background to-primary/5">
-      {/* Combined Header with Search */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border/50">
-        {/* Main Search Bar */}
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
-                Enzonic Search
-              </h1>
-            </Link>
+    <div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden bg-gradient-to-br from-background to-primary/5">
+      {/* Full-page loading overlay */}
+      <SearchLoadingOverlay isLoading={loading} />
+      
+      {/* Use shared Navbar with floating behavior */}
+      <Navbar />
 
-            {/* Search Bar with Autocomplete */}
-            <div className="flex-1 max-w-2xl relative">
-              <form onSubmit={handleSearch}>
-                <div className="relative">
-                  <div className="bg-background/95 backdrop-blur rounded-full border-2 border-border/60 shadow-lg hover:shadow-xl hover:border-primary/40 transition-all">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      ref={searchInputRef}
-                      type="text"
-                      placeholder="Search the web..."
-                      value={searchQuery}
-                      onChange={(e) => handleInputChange(e.target.value)}
-                      onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      className="pl-12 pr-16 py-3 rounded-full border-0 bg-transparent focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
-                    />
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                      {searchQuery && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setSearchQuery('');
-                            setSuggestions([]);
-                            setShowSuggestions(false);
-                          }}
-                          className="rounded-full w-8 h-8 p-0 hover:bg-primary/10"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Autocomplete Dropdown */}
-                  {showSuggestions && suggestions.length > 0 && (
-                    <Card className="absolute top-full left-0 right-0 mt-2 z-50 shadow-lg border-border/50">
-                      <div className="py-2">
-                        {suggestions.map((suggestion, index) => {
-                          const isHistory = searchHistory.includes(suggestion);
-                          return (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => selectSuggestion(suggestion)}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-primary/10 transition-colors flex items-center gap-3"
-                            >
-                              {isHistory ? (
-                                <Clock className="h-3 w-3 text-primary" />
-                              ) : (
-                                <Search className="h-3 w-3 text-muted-foreground" />
-                              )}
-                              <span>{suggestion}</span>
-                              {isHistory && (
-                                <span className="ml-auto text-xs text-primary">Recent</span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </Card>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            {/* Right side buttons */}
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {/* Theme Toggle Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (theme === 'light') setTheme('dark');
-                  else if (theme === 'dark') setTheme('system');
-                  else setTheme('light');
-                }}
-                className="w-9 h-9 p-0 hover:bg-primary/10"
-                title={`Current theme: ${theme}${theme === 'system' ? ` (${resolvedTheme})` : ''}`}
-              >
-                {resolvedTheme === 'dark' ? (
-                  <Sun className="h-4 w-4" />
-                ) : (
-                  <Moon className="h-4 w-4" />
-                )}
-              </Button>
-
-              {/* AppGrid Button */}
-              <Dialog open={showAppGrid} onOpenChange={setShowAppGrid}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-9 h-9 p-0 hover:bg-primary/10"
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md p-0 bg-transparent border-0 shadow-none">
-                  <AppGrid />
-                </DialogContent>
-              </Dialog>
-
-              {/* Account Button */}
-              <SignedIn>
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "h-9 w-9 rounded-full border-2 border-primary/20 hover:border-primary/40 transition-all"
-                    }
-                  }}
-                />
-              </SignedIn>
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-9 h-9 p-0 hover:bg-primary/10"
-                  >
-                    <User className="h-4 w-4" />
-                  </Button>
-                </SignInButton>
-              </SignedOut>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Categories and Filters */}
-        <div className="border-t border-border/50">
-          <div className="container mx-auto px-6 py-3">
-            <div className="flex items-center justify-between gap-4">
+      {/* Categories and Filters */}
+      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur border-b border-border/50">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               {/* Category Tabs */}
               <Tabs 
                 value={filters.category} 
                 onValueChange={(value) => updateFiltersAndSearch({ category: value })}
-                className="flex-1"
+                className="w-full sm:flex-1 overflow-x-auto"
               >
-                <TabsList className="bg-transparent h-auto p-0 space-x-1">
+                <TabsList className="bg-transparent h-auto p-0 space-x-1 flex-nowrap w-full sm:w-auto">
                   {categories.map((category) => {
                     const IconComponent = category.icon;
                     return (
                       <TabsTrigger
                         key={category.id}
                         value={category.id}
-                        className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-3 py-1.5 text-sm"
+                        className="flex items-center gap-1.5 sm:gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-2 sm:px-3 py-1.5 text-xs sm:text-sm whitespace-nowrap"
                       >
-                        <IconComponent className="h-3.5 w-3.5" />
-                        {category.label}
+                        <IconComponent className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        <span className="hidden sm:inline">{category.label}</span>
+                        <span className="sm:hidden">{category.label.substring(0, 3)}</span>
                       </TabsTrigger>
                     );
                   })}
@@ -735,10 +692,10 @@ const SearchResults = () => {
               </Tabs>
 
               {/* Filter Controls */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
                 {/* Language Filter */}
                 <Select value={filters.language} onValueChange={(value) => updateFiltersAndSearch({ language: value })}>
-                  <SelectTrigger className="w-[140px] h-9 text-sm">
+                  <SelectTrigger className="w-[110px] sm:w-[140px] h-8 sm:h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="Language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -760,7 +717,7 @@ const SearchResults = () => {
 
                 {/* Time Range Filter */}
                 <Select value={filters.timeRange} onValueChange={(value) => updateFiltersAndSearch({ timeRange: value })}>
-                  <SelectTrigger className="w-[130px] h-9 text-sm">
+                  <SelectTrigger className="w-[100px] sm:w-[130px] h-8 sm:h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="Any time" />
                   </SelectTrigger>
                   <SelectContent>
@@ -774,7 +731,7 @@ const SearchResults = () => {
 
                 {/* Safe Search Filter */}
                 <Select value={filters.safesearch.toString()} onValueChange={(value) => updateFiltersAndSearch({ safesearch: parseInt(value) })}>
-                  <SelectTrigger className="w-[120px] h-9 text-sm">
+                  <SelectTrigger className="w-[90px] sm:w-[120px] h-8 sm:h-9 text-xs sm:text-sm">
                     <SelectValue placeholder="Safe Search" />
                   </SelectTrigger>
                   <SelectContent>
@@ -788,17 +745,16 @@ const SearchResults = () => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-6 py-6">
-        <div className="flex gap-6">
+      <main className="flex-1 container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Left Column - Search Results */}
-          <div className="flex-1 max-w-4xl">
+          <div className="flex-1 w-full lg:max-w-4xl">
             {/* Search Stats */}
             {results && !loading && (
-              <div className="mb-6">
-                <p className="text-sm text-muted-foreground">
+              <div className="mb-4 sm:mb-6">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {results.results.length.toLocaleString()} results for "{results.query}"
                   {filters.category !== 'general' && ` in ${categories.find(c => c.id === filters.category)?.label}`}
                 </p>
@@ -813,26 +769,9 @@ const SearchResults = () => {
           </Alert>
         )}
 
-        {/* Loading State */}
-        {loading && (
-          <div className="space-y-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Card key={i} className="p-6">
-                <div className="space-y-3">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
         {/* Results */}
-        {results && !loading && (
+        {results && (
           <div className="space-y-6">
-
 
             {/* Query Suggestions (Did you mean) */}
             {didYouMeanSuggestions.length > 0 && (
@@ -866,6 +805,16 @@ const SearchResults = () => {
             )}
 
             {/* Search Results - Different layouts based on category */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1" />
+              {loadingMore && (
+                <Badge variant="secondary" className="ml-4 flex items-center gap-1.5">
+                  <div className="animate-spin h-3 w-3 border-2 border-primary border-t-transparent rounded-full"></div>
+                  Loading more...
+                </Badge>
+              )}
+            </div>
+
             {filters.category === 'map' ? (
               // Map View
               <OpenStreetMap query={searchQuery} results={results.results} />

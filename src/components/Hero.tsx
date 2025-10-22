@@ -18,7 +18,9 @@ const Hero = () => {
       <div className="container mx-auto px-3 sm:px-4 relative z-10 w-full">
         <div className="max-w-4xl mx-auto text-center space-y-4 sm:space-y-6 md:space-y-8 py-6 sm:py-8">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium animate-fade-in shadow-lg">
-            <img src={logo} alt="Enzonic Logo" className="h-4 sm:h-5 w-4 sm:w-5" />
+            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-xl overflow-hidden flex items-center justify-center bg-background/50 flex-shrink-0">
+              <img src={logo} alt="Enzonic Logo" className="w-full h-full object-cover" />
+            </div>
             <span className="whitespace-nowrap">Enzonic: A new start</span>
           </div>
 

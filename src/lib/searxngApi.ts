@@ -50,6 +50,7 @@ export interface SearchOptions {
   pageno?: number;
   time_range?: 'day' | 'week' | 'month' | 'year';
   safesearch?: 0 | 1 | 2;
+  signal?: AbortSignal;
 }
 
 export const searchWeb = async (options: SearchOptions): Promise<SearchResponse> => {
@@ -78,6 +79,7 @@ export const searchWeb = async (options: SearchOptions): Promise<SearchResponse>
       headers: {
         'Accept': 'application/json',
       },
+      signal: options.signal,
     });
 
     if (!response.ok) {

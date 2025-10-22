@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemedClerkProvider } from "@/components/ThemedClerkProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import TermsAcceptanceDialog from "@/components/TermsAcceptanceDialog";
+import { useFavicon } from "@/hooks/use-favicon";
 import Index from "./pages/Index";
 import SearchResults from "./pages/SearchResults";
 import About from "./pages/About";
@@ -30,6 +31,33 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppRoutes = () => {
+  useFavicon(); // Dynamic favicon based on route
+  
+  return (
+    <>
+      <TermsAcceptanceDialog />
+      <div className="overflow-x-hidden">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/support" element={<Support />} />
+          <Route path="/translate" element={<Translate />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/boxes" element={<Boxes />} />
+          <Route path="/emi" element={<Emi />} />
+          <Route path="/shows" element={<Shows />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </>
+  );
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -39,24 +67,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <TermsAcceptanceDialog />
-              <div className="overflow-x-hidden">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/search" element={<SearchResults />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/support" element={<Support />} />
-                  <Route path="/translate" element={<Translate />} />
-                  <Route path="/chatbot" element={<Chatbot />} />
-                  <Route path="/boxes" element={<Boxes />} />
-                  <Route path="/emi" element={<Emi />} />
-                  <Route path="/shows" element={<Shows />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
+              <AppRoutes />
             </BrowserRouter>
           </TooltipProvider>
         </ThemedClerkProvider>

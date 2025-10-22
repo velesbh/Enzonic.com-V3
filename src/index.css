@@ -180,27 +180,51 @@ All colors MUST be HSL.
     }
   }
 
-  /* Enhanced code block styles */
-  .code-block-container {
-    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', 'Courier New', monospace;
-  }
-  
-  .code-block-container pre {
-    margin: 0;
-    padding: 0;
-  }
-  
-  .code-block-container code {
-    background: transparent !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: inherit;
+  /* Simple code block styling */
+  .code-block-wrapper {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
-  .code-block-container .dark {
-    background-color: hsl(var(--muted));
+  .code-block-wrapper:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .code-block-wrapper pre {
+    tab-size: 2;
+    -moz-tab-size: 2;
+  }
+
+  .code-block-wrapper code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+  }
+
+  /* Selection */
+  .code-block-wrapper ::selection {
+    background: rgba(159, 239, 0, 0.3);
+  }
+
+  /* Scrollbar */
+  .code-block-wrapper div[style*="overflow"]::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .code-block-wrapper div[style*="overflow"]::-webkit-scrollbar-track {
+    background: #000;
+  }
+
+  .code-block-wrapper div[style*="overflow"]::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+
+  .code-block-wrapper div[style*="overflow"]::-webkit-scrollbar-thumb:hover {
+    background: #444;
+  }
+
+  /* Button effects */
+  .code-block-wrapper button:active {
+    transform: scale(0.95);
   }
 
   /* Syntax highlighting for common languages */
@@ -217,6 +241,50 @@ All colors MUST be HSL.
   }
   
   .language-css {
+    color: hsl(var(--foreground));
+  }
+
+  .language-typescript, .language-ts {
+    color: hsl(var(--foreground));
+  }
+
+  .language-tsx {
+    color: hsl(var(--foreground));
+  }
+
+  .language-jsx {
+    color: hsl(var(--foreground));
+  }
+
+  .language-sql {
+    color: hsl(var(--foreground));
+  }
+
+  .language-bash {
+    color: hsl(var(--foreground));
+  }
+
+  .language-shell {
+    color: hsl(var(--foreground));
+  }
+
+  .language-json {
+    color: hsl(var(--foreground));
+  }
+
+  .language-xml {
+    color: hsl(var(--foreground));
+  }
+
+  .language-yaml {
+    color: hsl(var(--foreground));
+  }
+
+  .language-markdown {
+    color: hsl(var(--foreground));
+  }
+
+  .language-text {
     color: hsl(var(--foreground));
   }
 
@@ -339,6 +407,35 @@ All colors MUST be HSL.
 
   .animate-wave {
     animation: wave 0.8s ease-in-out infinite;
+  }
+
+  /* Streaming animations - 2 animations only */
+  @keyframes cursor-blink {
+    0%, 49%, 100% {
+      opacity: 1;
+    }
+    50%, 99% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes bar-wave {
+    0%, 100% {
+      transform: scaleY(0.6);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scaleY(1.2);
+      opacity: 1;
+    }
+  }
+
+  .animate-cursor-blink {
+    animation: cursor-blink 1s ease-in-out infinite;
+  }
+
+  .animate-bar-wave {
+    animation: bar-wave 1.2s ease-in-out infinite;
   }
 
   /* Cool title animations */

@@ -16,7 +16,9 @@ const Team = () => {
       <div className="container mx-auto px-3 sm:px-4 relative w-full">
         <div className="text-center space-y-3 sm:space-y-4 mb-8 sm:mb-10 md:mb-12">
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-2">
-            <img src={logo} alt="Enzonic Logo" className="h-6 sm:h-7 md:h-8 w-6 sm:w-7 md:w-8" />
+            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-xl overflow-hidden flex items-center justify-center bg-background/50">
+              <img src={logo} alt="Enzonic Logo" className="w-full h-full object-cover" />
+            </div>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Meet Our Team</h2>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-4 sm:px-0">

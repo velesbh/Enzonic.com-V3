@@ -5,6 +5,8 @@ export interface ServiceStatus {
   serviceId: string;
   available: boolean;
   timestamp: string;
+  name?: string;
+  responseTime?: number;
 }
 
 export interface ServicesStatus {
@@ -12,6 +14,8 @@ export interface ServicesStatus {
     name: string;
     enabled: boolean;
     endpoint: string;
+    available?: boolean;
+    responseTime?: number;
   };
 }
 
@@ -52,7 +56,7 @@ export async function checkServiceStatus(serviceId: string): Promise<ServiceStat
   }
 }
 
-// Get all services status
+// Get all services status with availability check
 export async function getAllServicesStatus(): Promise<ServicesStatus> {
   try {
     const response = await fetch(`${env.API_URL}/api/admin/services/status`);
@@ -62,7 +66,39 @@ export async function getAllServicesStatus(): Promise<ServicesStatus> {
     }
     
     const data = await response.json();
-    return data.services;
+    const services = data.services || {};
+    
+    // Check availability for each service
+    const checkedServices: ServicesStatus = {};
+    
+    for (const [serviceId, service] of Object.entries(services)) {
+      const serviceData = service as any;
+      const startTime = performance.now();
+      
+      try {
+        // Try to ping the service endpoint
+        const pingResponse = await fetch(`${serviceData.endpoint}/health`, {
+          method: 'HEAD',
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+        
+        const responseTime = performance.now() - startTime;
+        checkedServices[serviceId] = {
+          ...serviceData,
+          available: pingResponse.ok || pingResponse.status < 500,
+          responseTime: Math.round(responseTime)
+        };
+      } catch (error) {
+        // Service is unavailable
+        checkedServices[serviceId] = {
+          ...serviceData,
+          available: false,
+          responseTime: Math.round(performance.now() - startTime)
+        };
+      }
+    }
+    
+    return checkedServices;
   } catch (error) {
     console.error('Error getting services status:', error);
     return {};
@@ -156,15 +192,11 @@ export function useServiceStatus(serviceId: string) {
       }
     };
     
-    // Initial check
+    // Initial check only - no polling
     checkStatus();
-    
-    // Set up polling every 30 seconds
-    const interval = setInterval(checkStatus, 30000);
     
     return () => {
       mounted = false;
-      clearInterval(interval);
     };
   }, [serviceId]);
   
@@ -191,15 +223,11 @@ export function useAllServicesStatus() {
       }
     };
     
-    // Initial check
+    // Initial check only - no polling
     checkStatuses();
-    
-    // Set up polling every 30 seconds
-    const interval = setInterval(checkStatuses, 30000);
     
     return () => {
       mounted = false;
-      clearInterval(interval);
     };
   }, []);
   
