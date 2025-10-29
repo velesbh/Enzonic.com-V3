@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Server, Languages, Brain, Tv, Info, HelpCircle } from "lucide-react";
+import { Search, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 import { useScroll } from "@/hooks/use-scroll";
@@ -192,13 +192,13 @@ const Index = () => {
   };
 
   const quickActions = [
-    { name: "Enzonic Chatbot", path: "/chatbot", icon: Brain, description: "AI Assistant", color: "from-purple-500 to-indigo-600" },
-    { name: "Enzonic Emi", path: "/emi", icon: Brain, description: "AI Discord Bot", color: "from-blue-500 to-purple-600" },
-    { name: "Enzonic Boxes", path: "/boxes", icon: Server, description: "Virtual Machines", color: "from-green-500 to-teal-600" },
-    { name: "Enzonic Translate", path: "/translate", icon: Languages, description: "AI Translation", color: "from-orange-500 to-red-600" },
-    { name: "Shows", path: "/shows", icon: Tv, description: "Entertainment", color: "from-pink-500 to-rose-600" },
-    { name: "About", path: "/about", icon: Info, description: "Learn More", color: "from-indigo-500 to-blue-600" },
-    { name: "Support", path: "/support", icon: HelpCircle, description: "Get Help", color: "from-emerald-500 to-green-600" }
+    { name: "Search", path: "/", logo: "/search.png", description: "Web Search" },
+    { name: "About", path: "/about", logo: "/logo.png", description: "Learn More" },
+    { name: "Enzonic Emi", path: "/emi", logo: "/emi.png", description: "AI Discord Bot" },
+    { name: "Chatbot", path: "/chatbot", logo: "/ai.png", description: "AI Assistant" },
+    { name: "Boxes", path: "/boxes", logo: "/boxes.png", description: "Virtual Machines" },
+    { name: "Translate", path: "/translate", logo: "/translate.png", description: "AI Translation" },
+    { name: "Enzonic Shows", path: "/shows", logo: "/show.png", description: "Entertainment" }
   ];
 
   return (
@@ -340,8 +340,12 @@ const Index = () => {
               <Link key={action.name} to={action.path}>
                 <Card className="h-full hover:shadow-lg transition-all hover:scale-105 cursor-pointer">
                   <CardContent className="p-6 text-center">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-4 mx-auto`}>
-                      <action.icon className="h-6 w-6 text-white" />
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center mb-4 mx-auto bg-background/50">
+                      <img 
+                        src={action.logo} 
+                        alt={action.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <h3 className="font-semibold text-base mb-2">{action.name}</h3>
                     <p className="text-sm text-muted-foreground">{action.description}</p>

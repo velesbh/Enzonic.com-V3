@@ -39,7 +39,7 @@ export function ModelAvatar({ model, size = 'md', className }: ModelAvatarProps)
 
   return (
     <div className={cn(
-      "rounded-full bg-primary flex items-center justify-center overflow-hidden",
+      "rounded-full bg-muted flex items-center justify-center overflow-hidden",
       containerSizeClasses[size],
       className
     )}>
@@ -52,8 +52,8 @@ export function ModelAvatar({ model, size = 'md', className }: ModelAvatarProps)
             sizeClasses[size]
           )}
           style={{
-            maxWidth: '80%',
-            maxHeight: '80%',
+            width: '100%',
+            height: '100%',
             filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
           }}
           onError={(e) => {
@@ -62,13 +62,13 @@ export function ModelAvatar({ model, size = 'md', className }: ModelAvatarProps)
             target.style.display = 'none';
             const parent = target.parentElement;
             if (parent) {
-              parent.innerHTML = `<span class="text-primary-foreground text-xs font-medium">${model.name.substring(0, 1)}</span>`;
+              parent.innerHTML = `<span class="text-muted-foreground text-xs font-medium">${model.name.substring(0, 1)}</span>`;
             }
           }}
         />
       ) : (
         <span className={cn(
-          "text-primary-foreground font-medium",
+          "text-muted-foreground font-medium",
           size === 'sm' ? 'text-xs' : size === 'md' ? 'text-xs' : 'text-sm'
         )}>
           {model.name.substring(0, 1)}

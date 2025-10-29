@@ -131,7 +131,7 @@ export const AI_MODELS: Record<string, AIModel> = {
   cubic: {
     id: 'cubic',
     name: 'Cubic',
-    description: 'Balanced model for general conversations',
+    description: 'Balanced model for general tasks',
     maxTokens: 4096,
     contextWindow: 16384,
     logo: '/cubic.png'
@@ -139,21 +139,21 @@ export const AI_MODELS: Record<string, AIModel> = {
   nexara: {
     id: 'nexara',
     name: 'Nexara',
-    description: 'Advanced reasoning and analysis',
+    description: 'Creative, imaginative responses',
     maxTokens: 4096,
     contextWindow: 32768
   },
   zixen: {
     id: 'zixen',
     name: 'Zixen',
-    description: 'Creative and imaginative responses',
+    description: 'Advanced reasoning and analysis',
     maxTokens: 4096,
     contextWindow: 8192
   },
   'g-coder': {
     id: 'g-coder',
     name: 'G-Coder',
-    description: 'Specialized for coding and technical tasks',
+    description: 'Specialized for coding and technical tasks using gemini',
     maxTokens: 4096,
     contextWindow: 16384,
     logo: '/g-coder.png'
