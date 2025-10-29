@@ -238,7 +238,25 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">12. Changes to This Policy</h2>
+                <h2 className="text-2xl font-semibold mb-4">12. User-Generated Content and Liability Limitations</h2>
+                <p className="text-muted-foreground mb-4">
+                  <strong>USER-GENERATED CONTENT DISCLAIMER:</strong> Our services may allow users to upload, share, or generate content. Enzonic LLC is not responsible for any user-generated content and expressly disclaims all liability related thereto.
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4">
+                  <li><strong>No Responsibility:</strong> We do not assume responsibility for the accuracy, legality, appropriateness, or quality of any user-generated content</li>
+                  <li><strong>No Endorsement:</strong> The presence of user-generated content on our platforms does not constitute endorsement or approval by Enzonic LLC</li>
+                  <li><strong>Third-Party Rights:</strong> Users are solely responsible for ensuring their content does not infringe on third-party intellectual property rights</li>
+                  <li><strong>AI-Generated Content:</strong> Content generated through our AI services is considered user-generated content and subject to the same limitations</li>
+                  <li><strong>Data Processing:</strong> While we may process user-generated content for service provision, we do not guarantee the security, privacy, or integrity of such content</li>
+                  <li><strong>Indemnification:</strong> You agree to indemnify Enzonic LLC from any claims arising from your user-generated content</li>
+                </ul>
+                <p className="text-muted-foreground">
+                  You interact with user-generated content at your own risk. Enzonic LLC is not liable for any damages resulting from user-generated content.
+                </p>
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">14. Changes to This Privacy Policy</h2>
                 <p className="text-muted-foreground">
                   We may update this Privacy Policy from time to time to reflect changes in our practices, 
                   technology, legal requirements, or other factors. We will notify you of any material changes 
@@ -248,7 +266,7 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">13. Contact Us</h2>
+                <h2 className="text-2xl font-semibold mb-4">15. Contact Us</h2>
                 <p className="text-muted-foreground mb-4">
                   If you have questions about this Privacy Policy or wish to exercise your privacy rights, please contact us:
                 </p>
@@ -262,7 +280,7 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">14. Third-Party Search Services</h2>
+                <h2 className="text-2xl font-semibold mb-4">16. Third-Party Search Services</h2>
                 <p className="text-muted-foreground mb-4">
                   Enzonic Search aggregates results from third-party search engines via SearXNG. When you use our search service:
                 </p>
@@ -282,7 +300,7 @@ const Privacy = () => {
               </div>
 
               <div>
-                <h2 className="text-2xl font-semibold mb-4">15. Automated Decision-Making</h2>
+                <h2 className="text-2xl font-semibold mb-4">17. Automated Decision-Making</h2>
                 <p className="text-muted-foreground">
                   We may use automated decision-making, including AI systems, to provide personalized services 
                   and recommendations. You have the right to request human intervention, express your point of view, 

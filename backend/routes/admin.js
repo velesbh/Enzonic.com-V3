@@ -15,7 +15,13 @@ import {
   checkServiceStatus,
   getAllServicesStatus,
   getRealtimeData,
-  recordActivity
+  recordActivity,
+  getAllUsers,
+  getUserStatistics,
+  getUserDetails,
+  updateUserStatus,
+  deleteUser,
+  sendUserNotification
 } from '../controllers/adminController.js';
 
 const router = express.Router();
@@ -51,6 +57,14 @@ router.get('/health', getSystemHealth);
 // Activity tracking endpoints (for frontend)
 router.post('/track/page-view', trackPageView);
 router.post('/track/interaction', trackInteraction);
+
+// User management endpoints
+router.get('/users', getAllUsers);
+router.get('/users/stats', getUserStatistics);
+router.get('/users/:userId', getUserDetails);
+router.put('/users/:userId/status', updateUserStatus);
+router.delete('/users/:userId', deleteUser);
+router.post('/users/notify', sendUserNotification);
 
 // Privacy management routes
 router.use('/privacy', privacyRoutes);

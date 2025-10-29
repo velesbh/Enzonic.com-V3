@@ -22,7 +22,7 @@ const AppGrid = () => {
   };
 
   return (
-    <div className="w-80 p-6 bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 supports-[backdrop-filter]:bg-card/90 relative overflow-hidden">
+    <div className="w-full max-w-md p-6 bg-card/95 backdrop-blur-xl rounded-2xl shadow-xl border border-border/50 supports-[backdrop-filter]:bg-card/90 relative overflow-hidden">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(8)].map((_, i) => (
@@ -39,7 +39,7 @@ const AppGrid = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-4 relative z-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 relative z-10">
         {apps.map((app) => {
           const isLoading = loadingApp === app.path;
           
@@ -49,7 +49,7 @@ const AppGrid = () => {
               to={app.path}
               onClick={() => handleAppClick(app.path)}
               className={cn(
-                "flex flex-col items-center justify-start p-3 rounded-2xl transition-all group min-h-[100px] text-center backdrop-blur-sm relative overflow-hidden",
+                "flex flex-col items-center justify-start p-3 rounded-2xl transition-all group min-h-[90px] sm:min-h-[100px] text-center backdrop-blur-sm relative overflow-hidden",
                 "hover:bg-primary/10 hover:scale-105 hover:shadow-lg",
                 "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
                 isLoading && "scale-95 opacity-75"
@@ -75,7 +75,7 @@ const AppGrid = () => {
 
               {/* App logo with rounded square styling */}
               <div className={cn(
-                "w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center mb-2 transition-all shadow-md backdrop-blur-sm relative bg-background/50",
+                "w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden flex items-center justify-center mb-2 transition-all shadow-md backdrop-blur-sm relative bg-background/50",
                 "group-hover:shadow-lg group-hover:scale-110",
                 "group-focus:shadow-lg",
                 isLoading && "animate-pulse-glow"

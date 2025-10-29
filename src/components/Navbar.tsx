@@ -250,6 +250,7 @@ const Navbar = () => {
               </a>
             </Button>
 
+            {!isSearchPage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 hover:text-primary transition-all h-10 w-10 flex items-center justify-center">
@@ -261,6 +262,7 @@ const Navbar = () => {
                 <AppGrid />
               </DropdownMenuContent>
             </DropdownMenu>
+            )}
 
             <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="rounded-full hover:bg-primary/10 hover:text-primary transition-all h-10 w-10 flex items-center justify-center">
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

@@ -10,6 +10,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
+    "postinstall": "cd backend && npm install",
     "backend:install": "cd backend && npm install",
     "backend:start": "cd backend && npm start",
     "backend:dev": "cd backend && npm run dev"

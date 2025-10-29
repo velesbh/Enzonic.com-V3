@@ -22,6 +22,15 @@ export async function authenticateUser(req, res, next) {
       // Add user ID to request object
       req.userId = sessionClaims.sub;
       
+      // Fetch user details to get email (needed for notifications)
+      try {
+        const user = await clerkClient.users.getUser(sessionClaims.sub);
+        req.userEmail = user.emailAddresses?.[0]?.emailAddress || null;
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        req.userEmail = null;
+      }
+      
       // Record user activity (async, don't wait for it)
       setImmediate(async () => {
         try {

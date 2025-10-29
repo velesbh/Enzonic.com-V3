@@ -1,0 +1,2007 @@
+import { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback } from 'react';
+import { Song } from '@/lib/musicApi';
+
+interface MusicPlayerState {
+  currentSong: Song | null;
+  playlist: Song[];
+  isPlaying: boolean;
+  volume: number;
+  isMuted: boolean;
+  currentTime: number;
+  duration: number;
+  isShuffle: boolean;
+  isRepeat: boolean;
+  isLoading: boolean;
+  error: string | null;
+  isFullScreenPlayerOpen: boolean;
+}
+
+interface MusicPlayerContextType extends MusicPlayerState {
+  audioRef: React.RefObject<HTMLAudioElement>;
+  playSong: (song: Song, playlist?: Song[]) => void;
+  togglePlay: () => void;
+  playNext: () => void;
+  playPrevious: () => void;
+  seekTo: (time: number) => void;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
+  setPlaylist: (playlist: Song[]) => void;
+  clearPlaylist: () => void;
+  openFullScreenPlayer: () => void;
+  closeFullScreenPlayer: () => void;
+  formatTime: (time: number) => string;
+}
+
+const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
+
+const initialState: MusicPlayerState = {
+  currentSong: null,
+  playlist: [],
+  isPlaying: false,
+  volume: 1,
+  isMuted: false,
+  currentTime: 0,
+  duration: 0,
+  isShuffle: false,
+  isRepeat: false,
+  isLoading: false,
+  error: null,
+  isFullScreenPlayerOpen: false,
+};
+
+export function MusicPlayerProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<MusicPlayerState>(initialState);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const currentSongRef = useRef<Song | null>(null);
+
+  // Load persisted state on mount
+  useEffect(() => {
+    const persisted = localStorage.getItem('musicPlayerState');
+    if (persisted) {
+      try {
+        const savedState = JSON.parse(persisted);
+        setState(prev => ({
+          ...prev,
+          volume: savedState.volume || 1,
+          isMuted: savedState.isMuted || false,
+          isShuffle: savedState.isShuffle || false,
+          isRepeat: savedState.isRepeat || false,
+        }));
+      } catch (error) {
+        console.error('Error loading persisted music player state:', error);
+      }
+    }
+  }, []);
+
+  // Save state to localStorage
+  useEffect(() => {
+    const stateToSave = {
+      volume: state.volume,
+      isMuted: state.isMuted,
+      isShuffle: state.isShuffle,
+      isRepeat: state.isRepeat,
+    };
+    localStorage.setItem('musicPlayerState', JSON.stringify(stateToSave));
+  }, [state.volume, state.isMuted, state.isShuffle, state.isRepeat]);
+
+  // Audio event handlers
+  const handleLoadedMetadata = useCallback(() => {
+    if (audioRef.current) {
+      setState(prev => ({
+        ...prev,
+        duration: audioRef.current!.duration,
+        isLoading: false,
+        error: null,
+      }));
+    }
+  }, []);
+
+  const handleTimeUpdate = useCallback(() => {
+    if (audioRef.current) {
+      setState(prev => ({
+        ...prev,
+        currentTime: audioRef.current!.currentTime,
+      }));
+    }
+  }, []);
+
+  const handleEnded = useCallback(() => {
+    if (state.isRepeat && state.currentSong) {
+      // Repeat current song
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(console.error);
+      }
+    } else {
+      // Play next song
+      playNext();
+    }
+  }, [state.isRepeat, state.currentSong]);
+
+  const handleError = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isLoading: false,
+      error: 'Failed to load audio',
+      isPlaying: false,
+    }));
+  }, []);
+
+  const handleCanPlay = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isLoading: false,
+      error: null,
+    }));
+  }, []);
+
+  // Set up audio event listeners
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [handleLoadedMetadata, handleTimeUpdate, handleEnded, handleError, handleCanPlay]);
+
+  // Sync volume with audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = state.isMuted ? 0 : state.volume;
+    }
+  }, [state.volume, state.isMuted]);
+
+  // Sync playing state with audio element
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    if (state.isPlaying) {
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error('Play error:', error);
+          setState(prev => ({ ...prev, isPlaying: false, error: 'Playback failed' }));
+        });
+      }
+    } else {
+      audioRef.current.pause();
+    }
+  }, [state.isPlaying]);
+
+  // Update audio source when song changes
+  useEffect(() => {
+    if (!audioRef.current || !state.currentSong) return;
+
+    // Only update if the song actually changed
+    if (currentSongRef.current?.id === state.currentSong.id) return;
+
+    currentSongRef.current = state.currentSong;
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    audioRef.current.src = state.currentSong.file_url;
+    audioRef.current.load();
+  }, [state.currentSong]);
+
+  const playSong = useCallback((song: Song, playlist: Song[] = []) => {
+    setState(prev => ({
+      ...prev,
+      currentSong: song,
+      playlist: playlist.length > 0 ? playlist : [song],
+      isPlaying: true,
+      currentTime: 0,
+      duration: 0,
+      isLoading: true,
+      error: null,
+    }));
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+  }, []);
+
+  const playNext = useCallback(() => {
+    if (state.playlist.length === 0) return;
+
+    const currentIndex = state.currentSong
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)
+      : -1;
+
+    let nextIndex: number;
+
+    if (state.isShuffle) {
+      // Random song, but not the current one
+      do {
+        nextIndex = Math.floor(Math.random() * state.playlist.length);
+      } while (nextIndex === currentIndex && state.playlist.length > 1);
+    } else {
+      nextIndex = currentIndex + 1;
+      if (nextIndex >= state.playlist.length) {
+        nextIndex = 0; // Loop back to start
+      }
+    }
+
+    const nextSong = state.playlist[nextIndex];
+    if (nextSong) {
+      playSong(nextSong, state.playlist);
+    }
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);
+
+  const playPrevious = useCallback(() => {
+    if (state.playlist.length === 0) return;
+
+    const currentIndex = state.currentSong
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)
+      : -1;
+
+    let prevIndex: number;
+
+    if (state.isShuffle) {
+      // Random song for shuffle mode
+      do {
+        prevIndex = Math.floor(Math.random() * state.playlist.length);
+      } while (prevIndex === currentIndex && state.playlist.length > 1);
+    } else {
+      prevIndex = currentIndex - 1;
+      if (prevIndex < 0) {
+        prevIndex = state.playlist.length - 1; // Loop to end
+      }
+    }
+
+    const prevSong = state.playlist[prevIndex];
+    if (prevSong) {
+      playSong(prevSong, state.playlist);
+    }
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);
+
+  const seekTo = useCallback((time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setState(prev => ({ ...prev, currentTime: time }));
+    }
+  }, []);
+
+  const setVolumeLevel = useCallback((volume: number) => {
+    setState(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setState(prev => ({ ...prev, isMuted: !prev.isMuted }));
+  }, []);
+
+  const toggleShuffle = useCallback(() => {
+    setState(prev => ({ ...prev, isShuffle: !prev.isShuffle }));
+  }, []);
+
+  const toggleRepeat = useCallback(() => {
+    setState(prev => ({ ...prev, isRepeat: !prev.isRepeat }));
+  }, []);
+
+  const setPlaylistState = useCallback((playlist: Song[]) => {
+    setState(prev => ({ ...prev, playlist }));
+  }, []);
+
+  const clearPlaylist = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      playlist: [],
+      currentSong: null,
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+    }));
+  }, []);
+
+  const openFullScreenPlayer = useCallback(() => {
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: true }));
+  }, []);
+
+  const closeFullScreenPlayer = useCallback(() => {
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: false }));
+  }, []);
+
+  const formatTime = useCallback((time: number): string => {
+    if (isNaN(time)) return '0:00';
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }, []);
+
+  const contextValue: MusicPlayerContextType = {
+    ...state,
+    audioRef,
+    playSong,
+    togglePlay,
+    playNext,
+    playPrevious,
+    seekTo,
+    setVolume: setVolumeLevel,
+    toggleMute,
+    toggleShuffle,
+    toggleRepeat,
+    setPlaylist: setPlaylistState,
+    clearPlaylist,
+    openFullScreenPlayer,
+    closeFullScreenPlayer,
+    formatTime,
+  };
+
+  return (
+    <MusicPlayerContext.Provider value={contextValue}>
+      {children}
+    </MusicPlayerContext.Provider>
+  );
+}
+
+export function useMusicPlayer() {
+  const context = useContext(MusicPlayerContext);
+  if (context === undefined) {
+    throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
+  }
+  return context;
+}
+
+
+  // Load persisted state on mount  setPlaylist: (playlist: Song[]) => void;
+
+  useEffect(() => {
+
+    const persisted = localStorage.getItem('musicPlayerState');  clearPlaylist: () => void;  isFullScreenPlayerOpen: boolean;  bufferingState: 'none' | 'connecting' | 'buffering' | 'stalled' | 'ready';
+
+    if (persisted) {
+
+      try {  openFullScreenPlayer: () => void;
+
+        const savedState = JSON.parse(persisted);
+
+        setState(prev => ({  closeFullScreenPlayer: () => void;}  connectionQuality: 'fast' | 'medium' | 'slow' | 'unknown';
+
+          ...prev,
+
+          volume: savedState.volume || 1,  formatTime: (time: number) => string;
+
+          isMuted: savedState.isMuted || false,
+
+          isShuffle: savedState.isShuffle || false,}  audioRef: React.RefObject<HTMLAudioElement>;
+
+          isRepeat: savedState.isRepeat || false,
+
+        }));
+
+      } catch (error) {
+
+        console.error('Error loading persisted music player state:', error);const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);interface MusicPlayerContextType extends MusicPlayerState {  preloadQueue: Map<string, PreloadItem>;
+
+      }
+
+    }
+
+  }, []);
+
+const initialState: MusicPlayerState = {  audioRef: React.RefObject<HTMLAudioElement>;  setCurrentSong: (song: Song | null) => void;
+
+  // Save state to localStorage
+
+  useEffect(() => {  currentSong: null,
+
+    const stateToSave = {
+
+      volume: state.volume,  playlist: [],  playSong: (song: Song, playlist?: Song[]) => void;  setPlaylist: (playlist: Song[]) => void;
+
+      isMuted: state.isMuted,
+
+      isShuffle: state.isShuffle,  isPlaying: false,
+
+      isRepeat: state.isRepeat,
+
+    };  volume: 1,  togglePlay: () => void;  setIsPlaying: (playing: boolean) => void;
+
+    localStorage.setItem('musicPlayerState', JSON.stringify(stateToSave));
+
+  }, [state.volume, state.isMuted, state.isShuffle, state.isRepeat]);  isMuted: false,
+
+
+
+  // Audio event handlers  currentTime: 0,  playNext: () => void;  setVolume: (volume: number) => void;
+
+  const handleLoadedMetadata = useCallback(() => {
+
+    if (audioRef.current) {  duration: 0,
+
+      setState(prev => ({
+
+        ...prev,  isShuffle: false,  playPrevious: () => void;  setIsMuted: (muted: boolean) => void;
+
+        duration: audioRef.current!.duration,
+
+        isLoading: false,  isRepeat: false,
+
+        error: null,
+
+      }));  isLoading: false,  seekTo: (time: number) => void;  setCurrentTime: (time: number) => void;
+
+    }
+
+  }, []);  error: null,
+
+
+
+  const handleTimeUpdate = useCallback(() => {  isFullScreenPlayerOpen: false,  setVolume: (volume: number) => void;  setDuration: (duration: number) => void;
+
+    if (audioRef.current) {
+
+      setState(prev => ({};
+
+        ...prev,
+
+        currentTime: audioRef.current!.currentTime,  toggleMute: () => void;  setIsShuffle: (shuffle: boolean) => void;
+
+      }));
+
+    }export function MusicPlayerProvider({ children }: { children: ReactNode }) {
+
+  }, []);
+
+  const [state, setState] = useState<MusicPlayerState>(initialState);  toggleShuffle: () => void;  setIsRepeat: (repeat: boolean) => void;
+
+  const handleEnded = useCallback(() => {
+
+    if (state.isRepeat && state.currentSong) {  const audioRef = useRef<HTMLAudioElement>(null);
+
+      // Repeat current song
+
+      if (audioRef.current) {  const currentSongRef = useRef<Song | null>(null);  toggleRepeat: () => void;  setIsFullScreenPlayerOpen: (open: boolean) => void;
+
+        audioRef.current.currentTime = 0;
+
+        audioRef.current.play().catch(console.error);
+
+      }
+
+    } else {  // Load persisted state on mount  setPlaylist: (playlist: Song[]) => void;  setIsBuffering: (buffering: boolean) => void;
+
+      // Play next song
+
+      playNext();  useEffect(() => {
+
+    }
+
+  }, [state.isRepeat, state.currentSong]);    const persisted = localStorage.getItem('musicPlayerState');  clearPlaylist: () => void;  setBufferingState: (state: 'none' | 'connecting' | 'buffering' | 'stalled' | 'ready') => void;
+
+
+
+  const handleError = useCallback(() => {    if (persisted) {
+
+    setState(prev => ({
+
+      ...prev,      try {  openFullScreenPlayer: () => void;  playNext: () => void;
+
+      isLoading: false,
+
+      error: 'Failed to load audio',        const savedState = JSON.parse(persisted);
+
+      isPlaying: false,
+
+    }));        setState(prev => ({  closeFullScreenPlayer: () => void;  playPrevious: () => void;
+
+  }, []);
+
+          ...prev,
+
+  const handleCanPlay = useCallback(() => {
+
+    setState(prev => ({          volume: savedState.volume || 1,  formatTime: (time: number) => string;  togglePlay: () => void;
+
+      ...prev,
+
+      isLoading: false,          isMuted: savedState.isMuted || false,
+
+      error: null,
+
+    }));          isShuffle: savedState.isShuffle || false,}  seekTo: (time: number) => void;
+
+  }, []);
+
+          isRepeat: savedState.isRepeat || false,
+
+  // Set up audio event listeners
+
+  useEffect(() => {        }));  setVolumeLevel: (volume: number) => void;
+
+    const audio = audioRef.current;
+
+    if (!audio) return;      } catch (error) {
+
+
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);        console.error('Error loading persisted music player state:', error);const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);  toggleMute: () => void;
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+
+    audio.addEventListener('ended', handleEnded);      }
+
+    audio.addEventListener('error', handleError);
+
+    audio.addEventListener('canplay', handleCanPlay);    }  toggleShuffle: () => void;
+
+
+
+    return () => {  }, []);
+
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+
+      audio.removeEventListener('timeupdate', handleTimeUpdate);const initialState: MusicPlayerState = {  toggleRepeat: () => void;
+
+      audio.removeEventListener('ended', handleEnded);
+
+      audio.removeEventListener('error', handleError);  // Save state to localStorage
+
+      audio.removeEventListener('canplay', handleCanPlay);
+
+    };  useEffect(() => {  currentSong: null,  preloadSong: (song: Song, priority?: 'high' | 'medium' | 'low') => void;
+
+  }, [handleLoadedMetadata, handleTimeUpdate, handleEnded, handleError, handleCanPlay]);
+
+    const stateToSave = {
+
+  // Sync volume with audio element
+
+  useEffect(() => {      volume: state.volume,  playlist: [],  clearPreloadQueue: () => void;
+
+    if (audioRef.current) {
+
+      audioRef.current.volume = state.isMuted ? 0 : state.volume;      isMuted: state.isMuted,
+
+    }
+
+  }, [state.volume, state.isMuted]);      isShuffle: state.isShuffle,  isPlaying: false,  getPreloadStatus: (songId: string) => PreloadStatus;
+
+
+
+  // Sync playing state with audio element      isRepeat: state.isRepeat,
+
+  useEffect(() => {
+
+    if (!audioRef.current) return;    };  volume: 1,}
+
+
+
+    if (state.isPlaying) {    localStorage.setItem('musicPlayerState', JSON.stringify(stateToSave));
+
+      const playPromise = audioRef.current.play();
+
+      if (playPromise !== undefined) {  }, [state.volume, state.isMuted, state.isShuffle, state.isRepeat]);  isMuted: false,
+
+        playPromise.catch((error) => {
+
+          console.error('Play error:', error);
+
+          setState(prev => ({ ...prev, isPlaying: false, error: 'Playback failed' }));
+
+        });  // Audio event handlers  currentTime: 0,interface PreloadItem {
+
+      }
+
+    } else {  const handleLoadedMetadata = useCallback(() => {
+
+      audioRef.current.pause();
+
+    }    if (audioRef.current) {  duration: 0,  audio: HTMLAudioElement;
+
+  }, [state.isPlaying]);
+
+      setState(prev => ({
+
+  // Update audio source when song changes
+
+  useEffect(() => {        ...prev,  isShuffle: false,  song: Song;
+
+    if (!audioRef.current || !state.currentSong) return;
+
+        duration: audioRef.current!.duration,
+
+    // Only update if the song actually changed
+
+    if (currentSongRef.current?.id === state.currentSong.id) return;        isLoading: false,  isRepeat: false,  priority: 'high' | 'medium' | 'low';
+
+
+
+    currentSongRef.current = state.currentSong;        error: null,
+
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+      }));  isLoading: false,  status: 'loading' | 'ready' | 'error';
+
+    audioRef.current.src = state.currentSong.file_url;
+
+    audioRef.current.load();    }
+
+  }, [state.currentSong]);
+
+  }, []);  error: null,  loadStage: 'none' | 'metadata' | 'partial' | 'full';
+
+  const playSong = useCallback((song: Song, playlist: Song[] = []) => {
+
+    setState(prev => ({
+
+      ...prev,
+
+      currentSong: song,  const handleTimeUpdate = useCallback(() => {  isFullScreenPlayerOpen: false,  createdAt: number;
+
+      playlist: playlist.length > 0 ? playlist : [song],
+
+      isPlaying: true,    if (audioRef.current) {
+
+      currentTime: 0,
+
+      duration: 0,      setState(prev => ({};  lastAccessed: number;
+
+      isLoading: true,
+
+      error: null,        ...prev,
+
+    }));
+
+  }, []);        currentTime: audioRef.current!.currentTime,  retryCount: number;
+
+
+
+  const togglePlay = useCallback(() => {      }));
+
+    setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+
+  }, []);    }export function MusicPlayerProvider({ children }: { children: ReactNode }) {}
+
+
+
+  const playNext = useCallback(() => {  }, []);
+
+    if (state.playlist.length === 0) return;
+
+  const [state, setState] = useState<MusicPlayerState>(initialState);
+
+    const currentIndex = state.currentSong
+
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)  const handleEnded = useCallback(() => {
+
+      : -1;
+
+    if (state.isRepeat && state.currentSong) {  const audioRef = useRef<HTMLAudioElement>(null);type PreloadStatus = 'none' | 'loading' | 'ready' | 'error';
+
+    let nextIndex: number;
+
+      // Repeat current song
+
+    if (state.isShuffle) {
+
+      // Random song, but not the current one      if (audioRef.current) {  const currentSongRef = useRef<Song | null>(null);
+
+      do {
+
+        nextIndex = Math.floor(Math.random() * state.playlist.length);        audioRef.current.currentTime = 0;
+
+      } while (nextIndex === currentIndex && state.playlist.length > 1);
+
+    } else {        audioRef.current.play().catch(console.error);const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
+
+      nextIndex = currentIndex + 1;
+
+      if (nextIndex >= state.playlist.length) {      }
+
+        nextIndex = 0; // Loop back to start
+
+      }    } else {  // Load persisted state on mount
+
+    }
+
+      // Play next song
+
+    const nextSong = state.playlist[nextIndex];
+
+    if (nextSong) {      playNext();  useEffect(() => {export function MusicPlayerProvider({ children }: { children: ReactNode }) {
+
+      playSong(nextSong, state.playlist);
+
+    }    }
+
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);
+
+  }, [state.isRepeat, state.currentSong]);    const persisted = localStorage.getItem('musicPlayerState');  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+
+  const playPrevious = useCallback(() => {
+
+    if (state.playlist.length === 0) return;
+
+
+
+    const currentIndex = state.currentSong  const handleError = useCallback(() => {    if (persisted) {  const [playlist, setPlaylist] = useState<Song[]>([]);
+
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)
+
+      : -1;    setState(prev => ({
+
+
+
+    let prevIndex: number;      ...prev,      try {  const [isPlaying, setIsPlaying] = useState(false);
+
+
+
+    if (state.isShuffle) {      isLoading: false,
+
+      // Random song for shuffle mode
+
+      do {      error: 'Failed to load audio',        const savedState = JSON.parse(persisted);  const [volume, setVolume] = useState(1);
+
+        prevIndex = Math.floor(Math.random() * state.playlist.length);
+
+      } while (prevIndex === currentIndex && state.playlist.length > 1);      isPlaying: false,
+
+    } else {
+
+      prevIndex = currentIndex - 1;    }));        setState(prev => ({  const [isMuted, setIsMuted] = useState(false);
+
+      if (prevIndex < 0) {
+
+        prevIndex = state.playlist.length - 1; // Loop to end  }, []);
+
+      }
+
+    }          ...prev,  const [currentTime, setCurrentTime] = useState(0);
+
+
+
+    const prevSong = state.playlist[prevIndex];  const handleCanPlay = useCallback(() => {
+
+    if (prevSong) {
+
+      playSong(prevSong, state.playlist);    setState(prev => ({          volume: savedState.volume || 1,  const [duration, setDuration] = useState(0);
+
+    }
+
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);      ...prev,
+
+
+
+  const seekTo = useCallback((time: number) => {      isLoading: false,          isMuted: savedState.isMuted || false,  const [isShuffle, setIsShuffle] = useState(false);
+
+    if (audioRef.current) {
+
+      audioRef.current.currentTime = time;      error: null,
+
+      setState(prev => ({ ...prev, currentTime: time }));
+
+    }    }));          isShuffle: savedState.isShuffle || false,  const [isRepeat, setIsRepeat] = useState(false);
+
+  }, []);
+
+  }, []);
+
+  const setVolumeLevel = useCallback((volume: number) => {
+
+    setState(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));          isRepeat: savedState.isRepeat || false,  const [isFullScreenPlayerOpen, setIsFullScreenPlayerOpen] = useState(false);
+
+  }, []);
+
+  // Set up audio event listeners
+
+  const toggleMute = useCallback(() => {
+
+    setState(prev => ({ ...prev, isMuted: !prev.isMuted }));  useEffect(() => {        }));  const [isBuffering, setIsBuffering] = useState(false);
+
+  }, []);
+
+    const audio = audioRef.current;
+
+  const toggleShuffle = useCallback(() => {
+
+    setState(prev => ({ ...prev, isShuffle: !prev.isShuffle }));    if (!audio) return;      } catch (error) {  const [bufferingState, setBufferingState] = useState<'none' | 'connecting' | 'buffering' | 'stalled' | 'ready'>('none');
+
+  }, []);
+
+
+
+  const toggleRepeat = useCallback(() => {
+
+    setState(prev => ({ ...prev, isRepeat: !prev.isRepeat }));    audio.addEventListener('loadedmetadata', handleLoadedMetadata);        console.error('Error loading persisted music player state:', error);  const [preloadQueue, setPreloadQueue] = useState<Map<string, PreloadItem>>(new Map());
+
+  }, []);
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+
+  const setPlaylistState = useCallback((playlist: Song[]) => {
+
+    setState(prev => ({ ...prev, playlist }));    audio.addEventListener('ended', handleEnded);      }  const audioRef = useRef<HTMLAudioElement>(null);
+
+  }, []);
+
+    audio.addEventListener('error', handleError);
+
+  const clearPlaylist = useCallback(() => {
+
+    setState(prev => ({    audio.addEventListener('canplay', handleCanPlay);    }
+
+      ...prev,
+
+      playlist: [],
+
+      currentSong: null,
+
+      isPlaying: false,    return () => {  }, []);  // Load persisted state on mount
+
+      currentTime: 0,
+
+      duration: 0,      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+
+    }));
+
+  }, []);      audio.removeEventListener('timeupdate', handleTimeUpdate);  useEffect(() => {
+
+
+
+  const openFullScreenPlayer = useCallback(() => {      audio.removeEventListener('ended', handleEnded);
+
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: true }));
+
+  }, []);      audio.removeEventListener('error', handleError);  // Save state to localStorage    const persisted = localStorage.getItem('musicPlayerState');
+
+
+
+  const closeFullScreenPlayer = useCallback(() => {      audio.removeEventListener('canplay', handleCanPlay);
+
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: false }));
+
+  }, []);    };  useEffect(() => {    if (persisted) {
+
+
+
+  const formatTime = useCallback((time: number): string => {  }, [handleLoadedMetadata, handleTimeUpdate, handleEnded, handleError, handleCanPlay]);
+
+    if (isNaN(time)) return '0:00';
+
+    const stateToSave = {      try {
+
+    const minutes = Math.floor(time / 60);
+
+    const seconds = Math.floor(time % 60);  // Sync volume with audio element
+
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  }, []);  useEffect(() => {      volume: state.volume,        const state = JSON.parse(persisted);
+
+
+
+  const contextValue: MusicPlayerContextType = {    if (audioRef.current) {
+
+    ...state,
+
+    audioRef,      audioRef.current.volume = state.isMuted ? 0 : state.volume;      isMuted: state.isMuted,        setCurrentSong(state.currentSong);
+
+    playSong,
+
+    togglePlay,    }
+
+    playNext,
+
+    playPrevious,  }, [state.volume, state.isMuted]);      isShuffle: state.isShuffle,        setPlaylist(state.playlist || []);
+
+    seekTo,
+
+    setVolume: setVolumeLevel,
+
+    toggleMute,
+
+    toggleShuffle,  // Sync playing state with audio element      isRepeat: state.isRepeat,        setIsPlaying(state.isPlaying || false);
+
+    toggleRepeat,
+
+    setPlaylist: setPlaylistState,  useEffect(() => {
+
+    clearPlaylist,
+
+    openFullScreenPlayer,    if (!audioRef.current) return;    };        setVolume(state.volume || 1);
+
+    closeFullScreenPlayer,
+
+    formatTime,
+
+  };
+
+    if (state.isPlaying) {    localStorage.setItem('musicPlayerState', JSON.stringify(stateToSave));        setIsMuted(state.isMuted || false);
+
+  return (
+
+    <MusicPlayerContext.Provider value={contextValue}>      const playPromise = audioRef.current.play();
+
+      {children}
+
+    </MusicPlayerContext.Provider>      if (playPromise !== undefined) {  }, [state.volume, state.isMuted, state.isShuffle, state.isRepeat]);        setCurrentTime(state.currentTime || 0);
+
+  );
+
+}        playPromise.catch((error) => {
+
+
+
+export function useMusicPlayer() {          console.error('Play error:', error);        setDuration(state.duration || 0);
+
+  const context = useContext(MusicPlayerContext);
+
+  if (context === undefined) {          setState(prev => ({ ...prev, isPlaying: false, error: 'Playback failed' }));
+
+    throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
+
+  }        });  // Audio event handlers        setIsShuffle(state.isShuffle || false);
+
+  return context;
+
+}      }
+
+    } else {  const handleLoadedMetadata = useCallback(() => {        setIsRepeat(state.isRepeat || false);
+
+      audioRef.current.pause();
+
+    }    if (audioRef.current) {        setIsFullScreenPlayerOpen(state.isFullScreenPlayerOpen || false);
+
+  }, [state.isPlaying]);
+
+      setState(prev => ({      } catch (error) {
+
+  // Update audio source when song changes
+
+  useEffect(() => {        ...prev,        console.error('Error loading persisted music player state:', error);
+
+    if (!audioRef.current || !state.currentSong) return;
+
+        duration: audioRef.current!.duration,      }
+
+    // Only update if the song actually changed
+
+    if (currentSongRef.current?.id === state.currentSong.id) return;        isLoading: false,    }
+
+
+
+    currentSongRef.current = state.currentSong;        error: null,  }, []);
+
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+      }));
+
+    audioRef.current.src = state.currentSong.file_url;
+
+    audioRef.current.load();    }  // Sync playing state with audio element
+
+  }, [state.currentSong]);
+
+  }, []);  useEffect(() => {
+
+  const playSong = useCallback((song: Song, playlist: Song[] = []) => {
+
+    setState(prev => ({    if (audioRef.current) {
+
+      ...prev,
+
+      currentSong: song,  const handleTimeUpdate = useCallback(() => {      if (isPlaying) {
+
+      playlist: playlist.length > 0 ? playlist : [song],
+
+      isPlaying: true,    if (audioRef.current) {        audioRef.current.play().catch(console.error);
+
+      currentTime: 0,
+
+      duration: 0,      setState(prev => ({      } else {
+
+      isLoading: true,
+
+      error: null,        ...prev,        audioRef.current.pause();
+
+    }));
+
+  }, []);        currentTime: audioRef.current!.currentTime,      }
+
+
+
+  const togglePlay = useCallback(() => {      }));    }
+
+    setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+
+  }, []);    }  }, [isPlaying]);
+
+
+
+  const playNext = useCallback(() => {  }, []);
+
+    if (state.playlist.length === 0) return;
+
+  // Sync volume with audio element
+
+    const currentIndex = state.currentSong
+
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)  const handleEnded = useCallback(() => {  useEffect(() => {
+
+      : -1;
+
+    if (state.isRepeat && state.currentSong) {    if (audioRef.current) {
+
+    let nextIndex: number;
+
+      // Repeat current song      audioRef.current.volume = isMuted ? 0 : volume;
+
+    if (state.isShuffle) {
+
+      // Random song, but not the current one      if (audioRef.current) {    }
+
+      do {
+
+        nextIndex = Math.floor(Math.random() * state.playlist.length);        audioRef.current.currentTime = 0;  }, [volume, isMuted]);
+
+      } while (nextIndex === currentIndex && state.playlist.length > 1);
+
+    } else {        audioRef.current.play().catch(console.error);
+
+      nextIndex = currentIndex + 1;
+
+      if (nextIndex >= state.playlist.length) {      }  // Advanced preloading system with memory management and priorities
+
+        nextIndex = 0; // Loop back to start
+
+      }    } else {  const MAX_PRELOAD_ITEMS = 5; // Limit memory usage
+
+    }
+
+      // Play next song  const PRELOAD_TIMEOUT = 30000; // 30 seconds timeout
+
+    const nextSong = state.playlist[nextIndex];
+
+    if (nextSong) {      playNext();  const CLEANUP_INTERVAL = 60000; // Clean up every minute
+
+      playSong(nextSong, state.playlist);
+
+    }    }
+
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);
+
+  }, [state.isRepeat, state.currentSong]);  // Connection-aware loading configuration
+
+  const playPrevious = useCallback(() => {
+
+    if (state.playlist.length === 0) return;  const [connectionQuality, setConnectionQuality] = useState<'fast' | 'medium' | 'slow' | 'unknown'>('unknown');
+
+
+
+    const currentIndex = state.currentSong  const handleError = useCallback(() => {  const connectionCheckInterval = useRef<NodeJS.Timeout | null>(null);
+
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)
+
+      : -1;    setState(prev => ({
+
+
+
+    let prevIndex: number;      ...prev,  // Detect network connection quality
+
+
+
+    if (state.isShuffle) {      isLoading: false,  const detectConnectionQuality = async (): Promise<'fast' | 'medium' | 'slow' | 'unknown'> => {
+
+      // Random song for shuffle mode
+
+      do {      error: 'Failed to load audio',    try {
+
+        prevIndex = Math.floor(Math.random() * state.playlist.length);
+
+      } while (prevIndex === currentIndex && state.playlist.length > 1);      isPlaying: false,      // Check if Network Information API is available
+
+    } else {
+
+      prevIndex = currentIndex - 1;    }));      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+
+      if (prevIndex < 0) {
+
+        prevIndex = state.playlist.length - 1; // Loop to end  }, []);
+
+      }
+
+    }      if (connection) {
+
+
+
+    const prevSong = state.playlist[prevIndex];  const handleCanPlay = useCallback(() => {        const effectiveType = connection.effectiveType;
+
+    if (prevSong) {
+
+      playSong(prevSong, state.playlist);    setState(prev => ({        const downlink = connection.downlink;
+
+    }
+
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);      ...prev,
+
+
+
+  const seekTo = useCallback((time: number) => {      isLoading: false,        if (effectiveType === '4g' && downlink >= 5) return 'fast';
+
+    if (audioRef.current) {
+
+      audioRef.current.currentTime = time;      error: null,        if (effectiveType === '4g' || (effectiveType === '3g' && downlink >= 1)) return 'medium';
+
+      setState(prev => ({ ...prev, currentTime: time }));
+
+    }    }));        if (effectiveType === '3g' || effectiveType === '2g' || downlink < 1) return 'slow';
+
+  }, []);
+
+  }, []);      }
+
+  const setVolumeLevel = useCallback((volume: number) => {
+
+    setState(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));
+
+  }, []);
+
+  // Set up audio event listeners      // Fallback: measure connection speed with a small test
+
+  const toggleMute = useCallback(() => {
+
+    setState(prev => ({ ...prev, isMuted: !prev.isMuted }));  useEffect(() => {      const startTime = Date.now();
+
+  }, []);
+
+    const audio = audioRef.current;      const response = await fetch(window.location.origin + '/favicon.ico', {
+
+  const toggleShuffle = useCallback(() => {
+
+    setState(prev => ({ ...prev, isShuffle: !prev.isShuffle }));    if (!audio) return;        method: 'HEAD',
+
+  }, []);
+
+        cache: 'no-cache'
+
+  const toggleRepeat = useCallback(() => {
+
+    setState(prev => ({ ...prev, isRepeat: !prev.isRepeat }));    audio.addEventListener('loadedmetadata', handleLoadedMetadata);      });
+
+  }, []);
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);      const endTime = Date.now();
+
+  const setPlaylistState = useCallback((playlist: Song[]) => {
+
+    setState(prev => ({ ...prev, playlist }));    audio.addEventListener('ended', handleEnded);      const latency = endTime - startTime;
+
+  }, []);
+
+    audio.addEventListener('error', handleError);
+
+  const clearPlaylist = useCallback(() => {
+
+    setState(prev => ({    audio.addEventListener('canplay', handleCanPlay);      if (latency < 100) return 'fast';
+
+      ...prev,
+
+      playlist: [],      if (latency < 500) return 'medium';
+
+      currentSong: null,
+
+      isPlaying: false,    return () => {      return 'slow';
+
+      currentTime: 0,
+
+      duration: 0,      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);    } catch (error) {
+
+    }));
+
+  }, []);      audio.removeEventListener('timeupdate', handleTimeUpdate);      console.warn('Connection quality detection failed:', error);
+
+
+
+  const openFullScreenPlayer = useCallback(() => {      audio.removeEventListener('ended', handleEnded);      return 'unknown';
+
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: true }));
+
+  }, []);      audio.removeEventListener('error', handleError);    }
+
+
+
+  const closeFullScreenPlayer = useCallback(() => {      audio.removeEventListener('canplay', handleCanPlay);  };
+
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: false }));
+
+  }, []);    };
+
+
+
+  const formatTime = useCallback((time: number): string => {  }, [handleLoadedMetadata, handleTimeUpdate, handleEnded, handleError, handleCanPlay]);  // Update connection quality periodically
+
+    if (isNaN(time)) return '0:00';
+
+  useEffect(() => {
+
+    const minutes = Math.floor(time / 60);
+
+    const seconds = Math.floor(time % 60);  // Sync volume with audio element    const updateConnectionQuality = async () => {
+
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+  }, []);  useEffect(() => {      const quality = await detectConnectionQuality();
+
+
+
+  const contextValue: MusicPlayerContextType = {    if (audioRef.current) {      setConnectionQuality(quality);
+
+    ...state,
+
+    audioRef,      audioRef.current.volume = state.isMuted ? 0 : state.volume;    };
+
+    playSong,
+
+    togglePlay,    }
+
+    playNext,
+
+    playPrevious,  }, [state.volume, state.isMuted]);    updateConnectionQuality();
+
+    seekTo,
+
+    setVolume: setVolumeLevel,
+
+    toggleMute,
+
+    toggleShuffle,  // Sync playing state with audio element    // Check connection quality every 30 seconds
+
+    toggleRepeat,
+
+    setPlaylist: setPlaylistState,  useEffect(() => {    connectionCheckInterval.current = setInterval(updateConnectionQuality, 30000);
+
+    clearPlaylist,
+
+    openFullScreenPlayer,    if (!audioRef.current) return;
+
+    closeFullScreenPlayer,
+
+    formatTime,    // Listen for connection changes if available
+
+  };
+
+    if (state.isPlaying) {    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+
+  return (
+
+    <MusicPlayerContext.Provider value={contextValue}>      const playPromise = audioRef.current.play();    if (connection) {
+
+      {children}
+
+    </MusicPlayerContext.Provider>      if (playPromise !== undefined) {      const handleConnectionChange = () => updateConnectionQuality();
+
+  );
+
+}        playPromise.catch((error) => {      connection.addEventListener('change', handleConnectionChange);
+
+
+
+export function useMusicPlayer() {          console.error('Play error:', error);      return () => {
+
+  const context = useContext(MusicPlayerContext);
+
+  if (context === undefined) {          setState(prev => ({ ...prev, isPlaying: false, error: 'Playback failed' }));        connection.removeEventListener('change', handleConnectionChange);
+
+    throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
+
+  }        });        if (connectionCheckInterval.current) {
+
+  return context;
+
+}      }          clearInterval(connectionCheckInterval.current);
+
+    } else {        }
+
+      audioRef.current.pause();      };
+
+    }    }
+
+  }, [state.isPlaying]);
+
+    return () => {
+
+  // Update audio source when song changes      if (connectionCheckInterval.current) {
+
+  useEffect(() => {        clearInterval(connectionCheckInterval.current);
+
+    if (!audioRef.current || !state.currentSong) return;      }
+
+    };
+
+    // Only update if the song actually changed  }, []);
+
+    if (currentSongRef.current?.id === state.currentSong.id) return;
+
+  // Get adaptive preload settings based on connection quality
+
+    currentSongRef.current = state.currentSong;  const getAdaptivePreloadSettings = (connectionQuality: 'fast' | 'medium' | 'slow' | 'unknown') => {
+
+    setState(prev => ({ ...prev, isLoading: true, error: null }));    switch (connectionQuality) {
+
+      case 'fast':
+
+    audioRef.current.src = state.currentSong.file_url;        return {
+
+    audioRef.current.load();          maxPreloadItems: 8,
+
+  }, [state.currentSong]);          preloadLevel: 'auto' as const,
+
+          priorityThreshold: 0.8, // Preload more aggressively
+
+  const playSong = useCallback((song: Song, playlist: Song[] = []) => {          timeoutMultiplier: 1
+
+    setState(prev => ({        };
+
+      ...prev,      case 'medium':
+
+      currentSong: song,        return {
+
+      playlist: playlist.length > 0 ? playlist : [song],          maxPreloadItems: 5,
+
+      isPlaying: true,          preloadLevel: 'auto' as const,
+
+      currentTime: 0,          priorityThreshold: 0.6,
+
+      duration: 0,          timeoutMultiplier: 1.5
+
+      isLoading: true,        };
+
+      error: null,      case 'slow':
+
+    }));        return {
+
+  }, []);          maxPreloadItems: 3,
+
+          preloadLevel: 'metadata' as const,
+
+  const togglePlay = useCallback(() => {          priorityThreshold: 0.3, // Only preload high priority items
+
+    setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));          timeoutMultiplier: 2
+
+  }, []);        };
+
+      default:
+
+  const playNext = useCallback(() => {        return {
+
+    if (state.playlist.length === 0) return;          maxPreloadItems: 5,
+
+          preloadLevel: 'metadata' as const,
+
+    const currentIndex = state.currentSong          priorityThreshold: 0.5,
+
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)          timeoutMultiplier: 1.5
+
+      : -1;        };
+
+    }
+
+    let nextIndex: number;  };
+
+
+
+    if (state.isShuffle) {  // Clean up old/unused preload items
+
+      // Random song, but not the current one  const cleanupPreloadQueue = () => {
+
+      do {    const now = Date.now();
+
+        nextIndex = Math.floor(Math.random() * state.playlist.length);    const settings = getAdaptivePreloadSettings(connectionQuality);
+
+      } while (nextIndex === currentIndex && state.playlist.length > 1);    const itemsToRemove: string[] = [];
+
+    } else {
+
+      nextIndex = currentIndex + 1;    preloadQueue.forEach((item, songId) => {
+
+      if (nextIndex >= state.playlist.length) {      // Remove items that are too old or failed
+
+        nextIndex = 0; // Loop back to start      const timeout = PRELOAD_TIMEOUT * settings.timeoutMultiplier;
+
+      }      if (now - item.lastAccessed > timeout ||
+
+    }          (item.status === 'error' && item.retryCount >= 3)) {
+
+        item.audio.remove();
+
+    const nextSong = state.playlist[nextIndex];        itemsToRemove.push(songId);
+
+    if (nextSong) {      }
+
+      playSong(nextSong, state.playlist);    });
+
+    }
+
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);    if (itemsToRemove.length > 0) {
+
+      setPreloadQueue(prev => {
+
+  const playPrevious = useCallback(() => {        const newQueue = new Map(prev);
+
+    if (state.playlist.length === 0) return;        itemsToRemove.forEach(id => newQueue.delete(id));
+
+        return newQueue;
+
+    const currentIndex = state.currentSong      });
+
+      ? state.playlist.findIndex(song => song.id === state.currentSong!.id)    }
+
+      : -1;  };
+
+
+
+    let prevIndex: number;  // Get preload status for a song
+
+  const getPreloadStatus = (songId: string): PreloadStatus => {
+
+    if (state.isShuffle) {    const item = preloadQueue.get(songId);
+
+      // Random song for shuffle mode    if (!item) return 'none';
+
+      do {    return item.status;
+
+        prevIndex = Math.floor(Math.random() * state.playlist.length);  };
+
+      } while (prevIndex === currentIndex && state.playlist.length > 1);
+
+    } else {  // Create a new preload item
+
+      prevIndex = currentIndex - 1;  const createPreloadItem = (song: Song, priority: 'high' | 'medium' | 'low' = 'medium'): PreloadItem => {
+
+      if (prevIndex < 0) {    const audio = new Audio();
+
+        prevIndex = state.playlist.length - 1; // Loop to end    const now = Date.now();
+
+      }
+
+    }    const item: PreloadItem = {
+
+      audio,
+
+    const prevSong = state.playlist[prevIndex];      song,
+
+    if (prevSong) {      priority,
+
+      playSong(prevSong, state.playlist);      status: 'loading',
+
+    }      loadStage: 'none',
+
+  }, [state.playlist, state.currentSong, state.isShuffle, playSong]);      createdAt: now,
+
+      lastAccessed: now,
+
+  const seekTo = useCallback((time: number) => {      retryCount: 0
+
+    if (audioRef.current) {    };
+
+      audioRef.current.currentTime = time;
+
+      setState(prev => ({ ...prev, currentTime: time }));    // Set up event listeners
+
+    }    audio.addEventListener('loadstart', () => {
+
+  }, []);      item.loadStage = 'metadata';
+
+      item.lastAccessed = Date.now();
+
+  const setVolumeLevel = useCallback((volume: number) => {    });
+
+    setState(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));
+
+  }, []);    audio.addEventListener('loadedmetadata', () => {
+
+      item.loadStage = 'partial';
+
+  const toggleMute = useCallback(() => {      item.lastAccessed = Date.now();
+
+    setState(prev => ({ ...prev, isMuted: !prev.isMuted }));    });
+
+  }, []);
+
+    audio.addEventListener('canplaythrough', () => {
+
+  const toggleShuffle = useCallback(() => {      item.loadStage = 'full';
+
+    setState(prev => ({ ...prev, isShuffle: !prev.isShuffle }));      item.status = 'ready';
+
+  }, []);      item.lastAccessed = Date.now();
+
+    });
+
+  const toggleRepeat = useCallback(() => {
+
+    setState(prev => ({ ...prev, isRepeat: !prev.isRepeat }));    audio.addEventListener('error', () => {
+
+  }, []);      item.status = 'error';
+
+      item.retryCount++;
+
+  const setPlaylistState = useCallback((playlist: Song[]) => {      item.lastAccessed = Date.now();
+
+    setState(prev => ({ ...prev, playlist }));
+
+  }, []);      // Auto-retry with exponential backoff
+
+      if (item.retryCount < 3) {
+
+  const clearPlaylist = useCallback(() => {        setTimeout(() => {
+
+    setState(prev => ({          if (preloadQueue.has(song.id)) {
+
+      ...prev,            retryPreload(song.id);
+
+      playlist: [],          }
+
+      currentSong: null,        }, Math.pow(2, item.retryCount) * 1000);
+
+      isPlaying: false,      }
+
+      currentTime: 0,    });
+
+      duration: 0,
+
+    }));    return item;
+
+  }, []);  };
+
+
+
+  const openFullScreenPlayer = useCallback(() => {  // Retry preloading a failed item
+
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: true }));  const retryPreload = (songId: string) => {
+
+  }, []);    const item = preloadQueue.get(songId);
+
+    if (!item || item.status !== 'error') return;
+
+  const closeFullScreenPlayer = useCallback(() => {
+
+    setState(prev => ({ ...prev, isFullScreenPlayerOpen: false }));    item.status = 'loading';
+
+  }, []);    item.lastAccessed = Date.now();
+
+
+
+  const formatTime = useCallback((time: number): string => {    // Upgrade preload level based on priority
+
+    if (isNaN(time)) return '0:00';    if (item.priority === 'high') {
+
+      item.audio.preload = 'auto';
+
+    const minutes = Math.floor(time / 60);    } else {
+
+    const seconds = Math.floor(time % 60);      item.audio.preload = 'metadata';
+
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;    }
+
+  }, []);
+
+    item.audio.load();
+
+  const contextValue: MusicPlayerContextType = {  };
+
+    ...state,
+
+    audioRef,  // Smart preloading with priority and memory management
+
+    playSong,  const preloadSong = (song: Song, priority: 'high' | 'medium' | 'low' = 'medium') => {
+
+    togglePlay,    const settings = getAdaptivePreloadSettings(connectionQuality);
+
+    playNext,
+
+    playPrevious,    // Check if already preloading/ready
+
+    seekTo,    const existing = preloadQueue.get(song.id);
+
+    setVolume: setVolumeLevel,    if (existing) {
+
+    toggleMute,      existing.lastAccessed = Date.now();
+
+    toggleShuffle,      // Upgrade priority if higher
+
+    toggleRepeat,      if (priority === 'high' || (priority === 'medium' && existing.priority === 'low')) {
+
+    setPlaylist: setPlaylistState,        existing.priority = priority;
+
+    clearPlaylist,        if (priority === 'high' && existing.audio.preload !== 'auto') {
+
+    openFullScreenPlayer,          existing.audio.preload = 'auto';
+
+    closeFullScreenPlayer,          existing.audio.load();
+
+    formatTime,        }
+
+  };      }
+
+      return;
+
+  return (    }
+
+    <MusicPlayerContext.Provider value={contextValue}>
+
+      {children}    // On slow connections, only preload high priority items
+
+    </MusicPlayerContext.Provider>    if (connectionQuality === 'slow' && priority !== 'high') {
+
+  );      return;
+
+}    }
+
+
+
+export function useMusicPlayer() {    // Check memory limit and clean up if needed
+
+  const context = useContext(MusicPlayerContext);    if (preloadQueue.size >= settings.maxPreloadItems) {
+
+  if (context === undefined) {      // Remove lowest priority items first
+
+    throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');      const items = Array.from(preloadQueue.entries());
+
+  }      items.sort(([,a], [,b]) => {
+
+  return context;        const priorityOrder = { high: 3, medium: 2, low: 1 };
+
+}        const aScore = priorityOrder[a.priority] - (Date.now() - a.lastAccessed) / 10000;
+        const bScore = priorityOrder[b.priority] - (Date.now() - b.lastAccessed) / 10000;
+        return aScore - bScore;
+      });
+
+      const toRemove = items.slice(0, items.length - settings.maxPreloadItems + 1);
+      toRemove.forEach(([songId, item]) => {
+        item.audio.remove();
+        preloadQueue.delete(songId);
+      });
+    }
+
+    const item = createPreloadItem(song, priority);
+    item.audio.src = song.file_url;
+    item.audio.volume = 0; // Mute preloaded audio
+
+    // Set preload level based on priority and connection quality
+    if (priority === 'high' || connectionQuality === 'fast') {
+      item.audio.preload = 'auto';
+    } else {
+      item.audio.preload = settings.preloadLevel;
+    }
+
+    item.audio.load();
+
+    setPreloadQueue(prev => new Map(prev.set(song.id, item)));
+  };
+
+  // Preload next songs in playlist with smart prioritization
+  const preloadNextSongs = (currentSong: Song, playlist: Song[], maxPreload?: number) => {
+    if (playlist.length === 0) return;
+
+    const settings = getAdaptivePreloadSettings(connectionQuality);
+    const actualMaxPreload = maxPreload || settings.maxPreloadItems;
+
+    const currentIndex = playlist.findIndex(s => s.id === currentSong.id);
+    if (currentIndex === -1) return;
+
+    const songsToPreload = [];
+    for (let i = 1; i <= actualMaxPreload; i++) {
+      let nextIndex;
+      if (isShuffle) {
+        // For shuffle, preload random songs but prefer nearby ones
+        const nearbySongs = playlist.slice(
+          Math.max(0, currentIndex - 2),
+          Math.min(playlist.length, currentIndex + 3)
+        );
+        nextIndex = nearbySongs[Math.floor(Math.random() * nearbySongs.length)];
+        if (typeof nextIndex === 'object') {
+          songsToPreload.push(nextIndex);
+          continue;
+        }
+        nextIndex = Math.floor(Math.random() * playlist.length);
+      } else {
+        nextIndex = (currentIndex + i) % playlist.length;
+      }
+      songsToPreload.push(playlist[nextIndex]);
+    }
+
+    // Preload with decreasing priority, respecting connection quality
+    songsToPreload.forEach((song, index) => {
+      let priority: 'high' | 'medium' | 'low' = 'low';
+      if (index === 0) priority = 'high';
+      else if (index === 1) priority = 'medium';
+
+      // On slow connections, reduce priority of non-immediate songs
+      if (connectionQuality === 'slow' && index > 0) {
+        priority = 'low';
+      }
+
+      preloadSong(song, priority);
+    });
+  };
+
+  // Clear preload queue with proper cleanup
+  const clearPreloadQueue = () => {
+    preloadQueue.forEach((item) => {
+      item.audio.remove();
+    });
+    setPreloadQueue(new Map());
+  };
+
+  // Update audio when song changes - use preloaded audio if available
+  useEffect(() => {
+    if (currentSong && audioRef.current) {
+      // Check if this song is already preloaded
+      const preloadedItem = preloadQueue.get(currentSong.id);
+
+      if (preloadedItem && preloadedItem.status === 'ready' && preloadedItem.audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
+        // Use the preloaded audio data - copy the buffered data
+        audioRef.current.src = currentSong.file_url;
+        audioRef.current.preload = 'auto'; // Now preload fully since we have it
+        audioRef.current.load();
+      } else {
+        // Load normally with metadata preload
+        audioRef.current.src = currentSong.file_url;
+        audioRef.current.preload = 'metadata';
+        audioRef.current.load();
+      }
+
+      if (isPlaying) {
+        audioRef.current.play().catch(console.error);
+      }
+    }
+  }, [currentSong]);
+
+  const playNext = () => {
+    if (playlist.length === 0 || !currentSong) return;
+
+    const currentIndex = playlist.findIndex(s => s.id === currentSong.id);
+    let nextIndex;
+
+    if (isShuffle) {
+      nextIndex = Math.floor(Math.random() * playlist.length);
+    } else {
+      nextIndex = (currentIndex + 1) % playlist.length;
+    }
+
+    const nextSong = playlist[nextIndex];
+    setCurrentSong(nextSong);
+    setCurrentTime(0);
+
+    // Check if next song is preloaded
+    const preloadedItem = preloadQueue.get(nextSong.id);
+    if (preloadedItem && preloadedItem.status === 'ready' && preloadedItem.audio.readyState >= 3) { // HAVE_FUTURE_DATA or better
+      setIsBuffering(false);
+    } else {
+      setIsBuffering(true);
+    }
+  };
+
+  const playPrevious = () => {
+    if (playlist.length === 0 || !currentSong) return;
+
+    const currentIndex = playlist.findIndex(s => s.id === currentSong.id);
+    let prevIndex;
+
+    if (isShuffle) {
+      prevIndex = Math.floor(Math.random() * playlist.length);
+    } else {
+      prevIndex = currentIndex === 0 ? playlist.length - 1 : currentIndex - 1;
+    }
+
+    const prevSong = playlist[prevIndex];
+    setCurrentSong(prevSong);
+    setCurrentTime(0);
+
+    // Check if previous song is preloaded
+    const preloadedItem = preloadQueue.get(prevSong.id);
+    if (preloadedItem && preloadedItem.status === 'ready' && preloadedItem.audio.readyState >= 3) { // HAVE_FUTURE_DATA or better
+      setIsBuffering(false);
+    } else {
+      setIsBuffering(true);
+    }
+  };
+
+  // Periodic cleanup of preload queue
+  useEffect(() => {
+    const cleanupInterval = setInterval(cleanupPreloadQueue, CLEANUP_INTERVAL);
+    return () => clearInterval(cleanupInterval);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearPreloadQueue();
+    };
+  }, []);
+
+  // Enhanced audio event handling for better buffering detection
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleLoadStart = () => {
+      setIsBuffering(true);
+      setBufferingState('connecting');
+    };
+
+    const handleProgress = () => {
+      // Check if we have enough data buffered
+      if (audio.buffered.length > 0) {
+        const buffered = audio.buffered.end(audio.buffered.length - 1);
+        const duration = audio.duration || 0;
+        const bufferedRatio = buffered / duration;
+
+        if (bufferedRatio > 0.1) { // Have at least 10% buffered
+          setBufferingState('ready');
+        }
+      }
+    };
+
+    const handleCanPlay = () => {
+      setIsBuffering(false);
+      setBufferingState('ready');
+    };
+
+    const handleCanPlayThrough = () => {
+      setIsBuffering(false);
+      setBufferingState('ready');
+    };
+
+    const handleWaiting = () => {
+      setIsBuffering(true);
+      setBufferingState('buffering');
+    };
+
+    const handlePlaying = () => {
+      setIsBuffering(false);
+      setBufferingState('ready');
+    };
+
+    const handleStalled = () => {
+      setIsBuffering(true);
+      setBufferingState('stalled');
+    };
+
+    const handleError = () => {
+      setIsBuffering(false);
+      setBufferingState('none');
+    };
+
+    const handleSuspend = () => {
+      // Loading has been suspended, might resume later
+      setBufferingState('connecting');
+    };
+
+    const handleAbort = () => {
+      setIsBuffering(false);
+      setBufferingState('none');
+    };
+
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('progress', handleProgress);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('canplaythrough', handleCanPlayThrough);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('playing', handlePlaying);
+    audio.addEventListener('stalled', handleStalled);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('suspend', handleSuspend);
+    audio.addEventListener('abort', handleAbort);
+
+    return () => {
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('progress', handleProgress);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('canplaythrough', handleCanPlayThrough);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('playing', handlePlaying);
+      audio.removeEventListener('stalled', handleStalled);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('suspend', handleSuspend);
+      audio.removeEventListener('abort', handleAbort);
+    };
+  }, []);
+
+  // Start preloading when user starts playing
+  const startPreloading = () => {
+    if (currentSong && playlist.length > 0) {
+      preloadNextSongs(currentSong, playlist);
+    }
+  };
+
+  // Enhanced togglePlay with preloading
+  const togglePlay = () => {
+    const newPlayingState = !isPlaying;
+    setIsPlaying(newPlayingState);
+
+    // Start preloading when user starts playing
+    if (newPlayingState && currentSong && playlist.length > 0) {
+      startPreloading();
+    }
+  };
+
+  const seekTo = (time: number) => {
+    setCurrentTime(time);
+  };
+
+  const setVolumeLevel = (newVolume: number) => {
+    setVolume(newVolume);
+    if (newVolume > 0) setIsMuted(false);
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const toggleShuffle = () => {
+    setIsShuffle(!isShuffle);
+  };
+
+  const toggleRepeat = () => {
+    setIsRepeat(!isRepeat);
+  };
+
+  return (
+    <MusicPlayerContext.Provider
+      value={{
+        currentSong,
+        playlist,
+        isPlaying,
+        volume,
+        isMuted,
+        currentTime,
+        duration,
+        isShuffle,
+        isRepeat,
+        isFullScreenPlayerOpen,
+        isBuffering,
+        bufferingState,
+        connectionQuality,
+        audioRef,
+        preloadQueue,
+        setCurrentSong,
+        setPlaylist,
+        setIsPlaying,
+        setVolume,
+        setIsMuted,
+        setCurrentTime,
+        setDuration,
+        setIsShuffle,
+        setIsRepeat,
+        setIsFullScreenPlayerOpen,
+        setIsBuffering,
+        setBufferingState,
+        playNext,
+        playPrevious,
+        togglePlay,
+        seekTo,
+        setVolumeLevel,
+        toggleMute,
+        toggleShuffle,
+        toggleRepeat,
+        preloadSong,
+        clearPreloadQueue,
+        getPreloadStatus,
+      }}
+    >
+      {children}
+    </MusicPlayerContext.Provider>
+  );
+}
+
+export function useMusicPlayer() {
+  const context = useContext(MusicPlayerContext);
+  if (context === undefined) {
+    throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
+  }
+  return context;
+}

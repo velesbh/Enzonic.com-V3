@@ -110,3 +110,50 @@ export const refreshAllData = async (token: string) => {
     throw error;
   }
 };
+
+// User management functions
+export const getAllUsers = (token: string, filters?: { 
+  search?: string; 
+  role?: string; 
+  status?: string; 
+  limit?: number; 
+  offset?: number 
+}) => {
+  const queryParams = new URLSearchParams();
+  if (filters?.search) queryParams.append('search', filters.search);
+  if (filters?.role) queryParams.append('role', filters.role);
+  if (filters?.status) queryParams.append('status', filters.status);
+  if (filters?.limit) queryParams.append('limit', filters.limit.toString());
+  if (filters?.offset) queryParams.append('offset', filters.offset.toString());
+  
+  const queryString = queryParams.toString();
+  return adminApiCall(`/users${queryString ? `?${queryString}` : ''}`, {}, token);
+};
+
+export const getUserDetails = (userId: string, token: string) =>
+  adminApiCall(`/users/${userId}`, {}, token);
+
+export const updateUserStatus = (userId: string, statusData: { status: string; reason?: string }, token: string) =>
+  adminApiCall(`/users/${userId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify(statusData)
+  }, token);
+
+export const deleteUser = (userId: string, reason: string, token: string) =>
+  adminApiCall(`/users/${userId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ reason })
+  }, token);
+
+export const sendUserNotification = (userIds: string[], notificationData: { 
+  title: string; 
+  message: string; 
+  type?: string 
+}, token: string) =>
+  adminApiCall('/users/notify', {
+    method: 'POST',
+    body: JSON.stringify({ userIds, ...notificationData })
+  }, token);
+
+export const getUserStatistics = (token: string) =>
+  adminApiCall('/users/stats', {}, token);

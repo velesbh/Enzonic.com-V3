@@ -6,6 +6,7 @@ import translationRoutes from './routes/translations.js';
 import chatRoutes from './routes/chats.js';
 import adminRoutes from './routes/admin.js';
 import searchRoutes from './routes/search.js';
+import privacyRoutes from './routes/privacy.js';
 
 // Load environment variables
 dotenv.config({ path: '../.env' });
@@ -33,6 +34,7 @@ app.use('/api/translations', translationRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/admin/privacy', privacyRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

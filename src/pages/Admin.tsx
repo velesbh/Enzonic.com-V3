@@ -7,9 +7,27 @@ import {
   updateServiceConfiguration,
   getLiveStatistics,
   getSystemHealth,
-  refreshAllData
+  refreshAllData,
+  getAllUsers,
+  getUserDetails,
+  updateUserStatus,
+  deleteUser,
+  sendUserNotification,
+  getUserStatistics
 } from '@/lib/adminApi';
 import { getRealtimeData, getAllServicesStatus } from '@/lib/serviceApi';
+import { 
+  getPendingSongs, 
+  approveSong, 
+  rejectSong, 
+  Song,
+  SongReport,
+  getPendingReports,
+  reviewReport,
+  adminDeleteSong,
+  banArtist,
+  unbanArtist
+} from '@/lib/musicApi';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -47,12 +65,31 @@ import {
   Save,
   RefreshCw,
   TrendingUp,
-  Eye
+  Eye,
+  Music,
+  Check,
+  X,
+  Clock,
+  Flag,
+  Trash2,
+  Mail,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Ban,
+  UserCheck,
+  UserX,
+  Shield,
+  Crown
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
 interface ServiceConfig {
@@ -119,7 +156,35 @@ const Admin = () => {
   const [adminToken, setAdminToken] = useState<string>('');
   const [serviceStatuses, setServiceStatuses] = useState<any>({});
   const [checkingServiceStatus, setCheckingServiceStatus] = useState(false);
+  const [pendingSongs, setPendingSongs] = useState<Song[]>([]);
+  const [loadingPendingSongs, setLoadingPendingSongs] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedSongForRejection, setSelectedSongForRejection] = useState<Song | null>(null);
+  const [pendingReports, setPendingReports] = useState<SongReport[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [reportActionReason, setReportActionReason] = useState('');
   const { toast } = useToast();
+
+  // User management state
+  const [users, setUsers] = useState<any[]>([]);
+  const [userStats, setUserStats] = useState<any>(null);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userFilters, setUserFilters] = useState({
+    role: '',
+    status: '',
+    limit: 50,
+    offset: 0
+  });
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [userActionDialog, setUserActionDialog] = useState<{
+    open: boolean;
+    action: string;
+    user?: any;
+    users?: any[];
+  }>({ open: false, action: '' });
+  const [userActionReason, setUserActionReason] = useState('');
 
   // Auto-refresh interval
   useEffect(() => {
@@ -178,6 +243,9 @@ const Admin = () => {
     if (isAdmin === true) {
       loadData();
       refreshRealtimeData();
+      loadPendingSongs();
+      loadUsers();
+      loadUserStats();
     }
   }, [isAdmin]);
 
@@ -240,9 +308,233 @@ const Admin = () => {
         setRealtimeData(data);
       }
     } catch (error) {
-      console.debug('Error refreshing realtime data:', error);
-      // Don't show toast for realtime data failures
+      console.error('Error refreshing realtime data:', error);
     }
+  };
+
+  const loadPendingSongs = async () => {
+    setLoadingPendingSongs(true);
+    try {
+      const { songs } = await getPendingSongs(getToken);
+      setPendingSongs(songs);
+    } catch (error) {
+      console.error('Error loading pending songs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load pending songs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPendingSongs(false);
+    }
+  };
+
+  const handleApproveSong = async (songId: string) => {
+    setActionLoading('Approving song...');
+    try {
+      await approveSong(songId, getToken);
+      toast({
+        title: "Success",
+        description: "Song approved successfully",
+      });
+      // Refresh pending songs list
+      await loadPendingSongs();
+    } catch (error) {
+      console.error('Error approving song:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to approve song",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRejectSong = async (songId: string, reason: string) => {
+    if (!reason.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide a rejection reason",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setActionLoading('Rejecting song...');
+    try {
+      await rejectSong(songId, reason, getToken);
+      toast({
+        title: "Success",
+        description: "Song rejected successfully",
+      });
+      setSelectedSongForRejection(null);
+      setRejectionReason('');
+      // Refresh pending songs list
+      await loadPendingSongs();
+    } catch (error) {
+      console.error('Error rejecting song:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to reject song",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const loadPendingReports = async () => {
+    setLoadingReports(true);
+    try {
+      const { reports } = await getPendingReports(getToken);
+      setPendingReports(reports);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load reports",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const handleReviewReport = async (reportId: string, action: 'dismiss' | 'delete_song' | 'ban_artist', notes?: string) => {
+    setActionLoading('Processing report...');
+    try {
+      await reviewReport(reportId, { action, adminNotes: notes }, getToken);
+      toast({
+        title: "Success",
+        description: `Report action completed: ${action}`,
+      });
+      setSelectedReportId(null);
+      setReportActionReason('');
+      await loadPendingReports();
+    } catch (error) {
+      console.error('Error reviewing report:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to review report",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // User management functions
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('No authentication token');
+
+      const filters = {
+        ...userFilters,
+        search: userSearchQuery || undefined
+      };
+
+      const response = await getAllUsers(token, filters);
+      setUsers(response.users || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load users",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const loadUserStats = async () => {
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const stats = await getUserStatistics(token);
+      setUserStats(stats);
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+    }
+  };
+
+  const handleUserSearch = () => {
+    setUserFilters(prev => ({ ...prev, offset: 0 }));
+    loadUsers();
+  };
+
+  const handleUserFilterChange = (filterType: string, value: string) => {
+    setUserFilters(prev => ({ ...prev, [filterType]: value, offset: 0 }));
+    setTimeout(() => loadUsers(), 100); // Debounce
+  };
+
+  const handleUserAction = async (action: string, userIds: string[], reason?: string) => {
+    setActionLoading(`Processing ${action}...`);
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('No authentication token');
+
+      switch (action) {
+        case 'ban':
+          for (const userId of userIds) {
+            await updateUserStatus(userId, { status: 'banned', reason }, token);
+          }
+          break;
+        case 'unban':
+          for (const userId of userIds) {
+            await updateUserStatus(userId, { status: 'active', reason }, token);
+          }
+          break;
+        case 'delete':
+          for (const userId of userIds) {
+            await deleteUser(userId, reason || 'Admin deletion', token);
+          }
+          break;
+        case 'notify':
+          await sendUserNotification(userIds, {
+            title: 'Admin Notification',
+            message: reason || 'Message from administrator',
+            type: 'admin'
+          }, token);
+          break;
+      }
+
+      toast({
+        title: "Success",
+        description: `${action} action completed for ${userIds.length} user(s)`,
+      });
+
+      setSelectedUsers([]);
+      setUserActionDialog({ open: false, action: '' });
+      setUserActionReason('');
+      await loadUsers();
+      await loadUserStats();
+    } catch (error) {
+      console.error(`Error performing ${action}:`, error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : `Failed to ${action} user(s)`,
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    setSelectedUsers(prev => 
+      checked 
+        ? [...prev, userId]
+        : prev.filter(id => id !== userId)
+    );
+  };
+
+  const handleSelectAllUsers = (checked: boolean) => {
+    setSelectedUsers(checked ? users.map(user => user.id) : []);
   };
 
   // Check all service availability
@@ -419,7 +711,7 @@ const Admin = () => {
             </div>
 
             <Tabs defaultValue="overview" className="space-y-8">
-              <TabsList className="grid w-full max-w-4xl grid-cols-5">
+              <TabsList className="grid w-full max-w-6xl grid-cols-8">
                 <TabsTrigger value="overview">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Overview
@@ -431,6 +723,18 @@ const Admin = () => {
                 <TabsTrigger value="services">
                   <Package className="h-4 w-4 mr-2" />
                   Services
+                </TabsTrigger>
+                <TabsTrigger value="music">
+                  <Music className="h-4 w-4 mr-2" />
+                  Music Approval
+                </TabsTrigger>
+                <TabsTrigger value="reports" onClick={loadPendingReports}>
+                  <Flag className="h-4 w-4 mr-2" />
+                  Song Reports
+                </TabsTrigger>
+                <TabsTrigger value="users">
+                  <Users className="h-4 w-4 mr-2" />
+                  User Management
                 </TabsTrigger>
                 <TabsTrigger value="privacy">
                   <Lock className="h-4 w-4 mr-2" />
@@ -832,6 +1136,739 @@ const Admin = () => {
                     );
                   })}
                 </div>
+              </TabsContent>
+
+              <TabsContent value="music" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Music className="h-5 w-5" />
+                      Pending Song Approvals
+                      {pendingSongs.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {pendingSongs.length} pending
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription>
+                      Review and approve or reject uploaded songs
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingPendingSongs ? (
+                      <div className="flex items-center justify-center py-12">
+                        <EnzonicLoading message="Loading pending songs..." />
+                      </div>
+                    ) : pendingSongs.length === 0 ? (
+                      <div className="text-center py-12">
+                        <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-600" />
+                        <p className="text-muted-foreground">No pending songs to review</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {pendingSongs.map((song) => (
+                          <Card key={song.id} className="border-2">
+                            <CardContent className="p-6">
+                              <div className="flex items-start gap-4">
+                                {/* Song Cover */}
+                                {song.cover_image_url ? (
+                                  <img
+                                    src={song.cover_image_url}
+                                    alt={song.title}
+                                    className="w-24 h-24 rounded-md object-cover flex-shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-24 h-24 rounded-md bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center flex-shrink-0">
+                                    <Music className="h-8 w-8 text-white" />
+                                  </div>
+                                )}
+
+                                {/* Song Info */}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-lg font-semibold mb-1">{song.title}</h3>
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Artist: {song.artist_name}
+                                  </p>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                    <div>
+                                      <span className="text-muted-foreground">Duration:</span>
+                                      <span className="ml-2">
+                                        {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Format:</span>
+                                      <span className="ml-2">{song.file_format || 'Unknown'}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Size:</span>
+                                      <span className="ml-2">
+                                        {song.file_size ? (song.file_size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown'}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Lyrics:</span>
+                                      <span className="ml-2">{song.has_lyrics ? 'Yes' : 'No'}</span>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    Uploaded {new Date(song.created_at).toLocaleDateString()} at {new Date(song.created_at).toLocaleTimeString()}
+                                  </div>
+
+                                  {/* Audio Preview */}
+                                  <div className="mt-4">
+                                    <audio controls className="w-full max-w-md">
+                                      <source src={song.file_url} type={song.file_format} />
+                                      Your browser does not support the audio element.
+                                    </audio>
+                                  </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col gap-2 flex-shrink-0">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleApproveSong(song.id)}
+                                    className="gap-2"
+                                  >
+                                    <Check className="h-4 w-4" />
+                                    Approve
+                                  </Button>
+                                  
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="gap-2"
+                                        onClick={() => setSelectedSongForRejection(song)}
+                                      >
+                                        <X className="h-4 w-4" />
+                                        Reject
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Reject Song</DialogTitle>
+                                        <DialogDescription>
+                                          Please provide a reason for rejecting "{song.title}"
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <Textarea
+                                          placeholder="Enter rejection reason..."
+                                          value={rejectionReason}
+                                          onChange={(e) => setRejectionReason(e.target.value)}
+                                          className="min-h-[100px]"
+                                        />
+                                        <div className="flex gap-2 justify-end">
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                              setSelectedSongForRejection(null);
+                                              setRejectionReason('');
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => handleRejectSong(song.id, rejectionReason)}
+                                            disabled={!rejectionReason.trim()}
+                                          >
+                                            Reject Song
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="reports" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <Flag className="h-5 w-5 text-red-500" />
+                          Song Reports Moderation
+                        </CardTitle>
+                        <CardDescription>
+                          Review and take action on reported songs
+                        </CardDescription>
+                      </div>
+                      <Badge variant="secondary">{pendingReports.length} pending</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingReports ? (
+                      <EnzonicLoading />
+                    ) : pendingReports.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Flag className="h-12 w-12 text-zinc-400 mx-auto mb-3" />
+                        <p className="text-zinc-400">No pending reports</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {pendingReports.map((report) => (
+                          <Card key={report.id} className="bg-zinc-900/50 border-zinc-800">
+                            <CardContent className="p-6">
+                              <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-6">
+                                {/* Report Info */}
+                                <div className="flex-1">
+                                  <div className="flex items-start gap-3 mb-3">
+                                    <Badge className="flex-shrink-0">
+                                      {report.report_type.replace(/_/g, ' ')}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                      {report.status}
+                                    </Badge>
+                                  </div>
+
+                                  <h4 className="font-semibold mb-1">
+                                    Song: {report.song_title}
+                                  </h4>
+                                  <p className="text-sm text-zinc-400 mb-3">
+                                    Artist: {report.artist_name}
+                                  </p>
+
+                                  {report.description && (
+                                    <div className="bg-zinc-800/50 p-3 rounded mb-3 text-sm">
+                                      <p className="text-zinc-300">{report.description}</p>
+                                    </div>
+                                  )}
+
+                                  <div className="flex flex-col gap-1 text-xs text-zinc-500">
+                                    <p>
+                                      Reported on: {new Date(report.created_at).toLocaleDateString()}
+                                    </p>
+                                    <p>Report ID: {report.id}</p>
+                                  </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col gap-2 flex-shrink-0 md:min-w-[200px]">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="gap-2"
+                                        onClick={() => setSelectedReportId(report.id)}
+                                      >
+                                        <Check className="h-4 w-4" />
+                                        Dismiss Report
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Dismiss Report</DialogTitle>
+                                        <DialogDescription>
+                                          Confirm dismissing this report
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <Textarea
+                                          placeholder="Admin notes (optional)..."
+                                          value={reportActionReason}
+                                          onChange={(e) => setReportActionReason(e.target.value)}
+                                          className="min-h-[80px]"
+                                        />
+                                        <div className="flex gap-2 justify-end">
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                              setSelectedReportId(null);
+                                              setReportActionReason('');
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            onClick={() => {
+                                              handleReviewReport(report.id, 'dismiss', reportActionReason);
+                                              setReportActionReason('');
+                                            }}
+                                            disabled={actionLoading !== null}
+                                          >
+                                            Dismiss
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="gap-2"
+                                        onClick={() => setSelectedReportId(report.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete Song
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Delete Song</DialogTitle>
+                                        <DialogDescription>
+                                          This will permanently delete the song "{report.song_title}"
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <Textarea
+                                          placeholder="Admin notes..."
+                                          value={reportActionReason}
+                                          onChange={(e) => setReportActionReason(e.target.value)}
+                                          className="min-h-[80px]"
+                                        />
+                                        <div className="flex gap-2 justify-end">
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                              setSelectedReportId(null);
+                                              setReportActionReason('');
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => {
+                                              handleReviewReport(report.id, 'delete_song', reportActionReason);
+                                              setReportActionReason('');
+                                            }}
+                                            disabled={actionLoading !== null}
+                                          >
+                                            Delete Song
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        className="gap-2"
+                                        onClick={() => setSelectedReportId(report.id)}
+                                      >
+                                        <Users className="h-4 w-4" />
+                                        Ban Artist
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Ban Artist</DialogTitle>
+                                        <DialogDescription>
+                                          This will ban the artist and delete the reported song
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <Textarea
+                                          placeholder="Ban reason and admin notes..."
+                                          value={reportActionReason}
+                                          onChange={(e) => setReportActionReason(e.target.value)}
+                                          className="min-h-[80px]"
+                                        />
+                                        <div className="flex gap-2 justify-end">
+                                          <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                              setSelectedReportId(null);
+                                              setReportActionReason('');
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            variant="destructive"
+                                            onClick={() => {
+                                              handleReviewReport(report.id, 'ban_artist', reportActionReason);
+                                              setReportActionReason('');
+                                            }}
+                                            disabled={actionLoading !== null}
+                                          >
+                                            Ban Artist
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="users" className="space-y-6">
+                <div className="space-y-6">
+                  {/* User Statistics */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <Users className="h-5 w-5 text-primary" />
+                          <div>
+                            <p className="text-2xl font-bold">{userStats?.totalUsers || stats?.overview.totalUsers || 0}</p>
+                            <p className="text-xs text-muted-foreground">Total Users</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <div>
+                            <p className="text-2xl font-bold">{userStats?.activeUsers || stats?.overview.activeUsers || 0}</p>
+                            <p className="text-xs text-muted-foreground">Active Users</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <Crown className="h-5 w-5 text-yellow-500" />
+                          <div>
+                            <p className="text-2xl font-bold">{userStats?.artists || 0}</p>
+                            <p className="text-xs text-muted-foreground">Artists</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <Ban className="h-5 w-5 text-red-500" />
+                          <div>
+                            <p className="text-2xl font-bold">{userStats?.bannedUsers || 0}</p>
+                            <p className="text-xs text-muted-foreground">Banned Users</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* User Search and Filters */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>User Management</CardTitle>
+                      <CardDescription>
+                        Search, filter, and manage platform users
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col md:flex-row gap-4 mb-4">
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Search by username, email, or name..."
+                            value={userSearchQuery}
+                            onChange={(e) => setUserSearchQuery(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleUserSearch()}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={handleUserSearch} disabled={loadingUsers} variant="outline" size="sm">
+                            <Search className="h-4 w-4 mr-2" />
+                            Search
+                          </Button>
+                          <Button onClick={loadUsers} disabled={loadingUsers} variant="outline" size="sm">
+                            <RefreshCw className={`h-4 w-4 mr-2 ${loadingUsers ? 'animate-spin' : ''}`} />
+                            Refresh
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <select
+                          value={userFilters.role}
+                          onChange={(e) => handleUserFilterChange('role', e.target.value)}
+                          className="px-3 py-1 border rounded-md text-sm"
+                        >
+                          <option value="">All Roles</option>
+                          <option value="user">Regular User</option>
+                          <option value="artist">Artist</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                        <select
+                          value={userFilters.status}
+                          onChange={(e) => handleUserFilterChange('status', e.target.value)}
+                          className="px-3 py-1 border rounded-md text-sm"
+                        >
+                          <option value="">All Status</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="banned">Banned</option>
+                          <option value="pending">Pending</option>
+                        </select>
+                      </div>
+
+                      {/* Bulk Actions */}
+                      {selectedUsers.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-md mb-4">
+                          <span className="text-sm font-medium">{selectedUsers.length} user(s) selected</span>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setUserActionDialog({ open: true, action: 'ban', users: selectedUsers })}
+                            >
+                              <Ban className="h-4 w-4 mr-2" />
+                              Ban Selected
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setUserActionDialog({ open: true, action: 'notify', users: selectedUsers })}
+                            >
+                              <Mail className="h-4 w-4 mr-2" />
+                              Send Notification
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => setUserActionDialog({ open: true, action: 'delete', users: selectedUsers })}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Selected
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Users Table */}
+                      <div className="border rounded-md">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-12">
+                                <Checkbox
+                                  checked={users.length > 0 && selectedUsers.length === users.length}
+                                  onCheckedChange={handleSelectAllUsers}
+                                />
+                              </TableHead>
+                              <TableHead>User</TableHead>
+                              <TableHead>Role</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Joined</TableHead>
+                              <TableHead>Last Active</TableHead>
+                              <TableHead className="w-12">Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {loadingUsers ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8">
+                                  <EnzonicLoading message="Loading users..." />
+                                </TableCell>
+                              </TableRow>
+                            ) : users.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                  No users found
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              users.map((user) => (
+                                <TableRow key={user.id}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedUsers.includes(user.id)}
+                                      onCheckedChange={(checked) => handleSelectUser(user.id, checked)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center space-x-3">
+                                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <span className="text-sm font-medium">
+                                          {user.firstName?.[0] || user.username?.[0] || user.email?.[0] || '?'}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <p className="font-medium">
+                                          {user.firstName && user.lastName 
+                                            ? `${user.firstName} ${user.lastName}` 
+                                            : user.username || 'Unknown User'}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant={user.role === 'admin' ? 'default' : user.role === 'artist' ? 'secondary' : 'outline'}>
+                                      {user.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
+                                      {user.role === 'artist' && <Crown className="h-3 w-3 mr-1" />}
+                                      {user.role || 'user'}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge 
+                                      variant={
+                                        user.status === 'active' ? 'default' :
+                                        user.status === 'banned' ? 'destructive' :
+                                        user.status === 'inactive' ? 'secondary' : 'outline'
+                                      }
+                                    >
+                                      {user.status === 'active' && <CheckCircle className="h-3 w-3 mr-1" />}
+                                      {user.status === 'banned' && <Ban className="h-3 w-3 mr-1" />}
+                                      {user.status || 'unknown'}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground">
+                                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'}
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground">
+                                    {user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleDateString() : 'Never'}
+                                  </TableCell>
+                                  <TableCell>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem
+                                          onClick={() => setUserActionDialog({ open: true, action: 'notify', user })}
+                                        >
+                                          <Mail className="h-4 w-4 mr-2" />
+                                          Send Message
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        {user.status === 'banned' ? (
+                                          <DropdownMenuItem
+                                            onClick={() => setUserActionDialog({ open: true, action: 'unban', user })}
+                                          >
+                                            <UserCheck className="h-4 w-4 mr-2" />
+                                            Unban User
+                                          </DropdownMenuItem>
+                                        ) : (
+                                          <DropdownMenuItem
+                                            onClick={() => setUserActionDialog({ open: true, action: 'ban', user })}
+                                          >
+                                            <Ban className="h-4 w-4 mr-2" />
+                                            Ban User
+                                          </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                          onClick={() => setUserActionDialog({ open: true, action: 'delete', user })}
+                                          className="text-destructive"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Delete User
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* User Action Dialog */}
+                <Dialog 
+                  open={userActionDialog.open} 
+                  onOpenChange={(open) => setUserActionDialog({ ...userActionDialog, open })}
+                >
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {userActionDialog.action === 'ban' && 'Ban User'}
+                        {userActionDialog.action === 'unban' && 'Unban User'}
+                        {userActionDialog.action === 'delete' && 'Delete User'}
+                        {userActionDialog.action === 'notify' && 'Send Notification'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {userActionDialog.action === 'ban' && `Ban ${userActionDialog.users?.length || 1} user(s). They will lose access to the platform.`}
+                        {userActionDialog.action === 'unban' && `Unban ${userActionDialog.users?.length || 1} user(s). They will regain access to the platform.`}
+                        {userActionDialog.action === 'delete' && `Permanently delete ${userActionDialog.users?.length || 1} user(s). This action cannot be undone.`}
+                        {userActionDialog.action === 'notify' && `Send a notification to ${userActionDialog.users?.length || 1} user(s).`}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      {(userActionDialog.action === 'ban' || userActionDialog.action === 'delete') && (
+                        <div>
+                          <Label htmlFor="reason">Reason (required)</Label>
+                          <Textarea
+                            id="reason"
+                            placeholder="Enter reason for this action..."
+                            value={userActionReason}
+                            onChange={(e) => setUserActionReason(e.target.value)}
+                            className="min-h-[80px]"
+                          />
+                        </div>
+                      )}
+                      {userActionDialog.action === 'notify' && (
+                        <div>
+                          <Label htmlFor="message">Message</Label>
+                          <Textarea
+                            id="message"
+                            placeholder="Enter notification message..."
+                            value={userActionReason}
+                            onChange={(e) => setUserActionReason(e.target.value)}
+                            className="min-h-[80px]"
+                          />
+                        </div>
+                      )}
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setUserActionDialog({ open: false, action: '' });
+                            setUserActionReason('');
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant={userActionDialog.action === 'delete' ? 'destructive' : 'default'}
+                          onClick={() => {
+                            const userIds = userActionDialog.users || [userActionDialog.user?.id];
+                            handleUserAction(userActionDialog.action, userIds, userActionReason);
+                          }}
+                          disabled={
+                            (userActionDialog.action !== 'notify' && !userActionReason.trim()) ||
+                            actionLoading !== null
+                          }
+                        >
+                          {userActionDialog.action === 'ban' && 'Ban User'}
+                          {userActionDialog.action === 'unban' && 'Unban User'}
+                          {userActionDialog.action === 'delete' && 'Delete User'}
+                          {userActionDialog.action === 'notify' && 'Send Notification'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </TabsContent>
 
               <TabsContent value="privacy" className="space-y-6">
